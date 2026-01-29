@@ -84,7 +84,14 @@ FORMAT RULES:
 - Use "-" or ">" for lists, never bullet points or asterisks
 - Keep dense blocks broken up with white space
 - Simple language always
-- End with a question or call to reply when natural`;
+- End with a question or call to reply when natural
+
+WRITING PRINCIPLES (always follow):
+- Never use hashtags. They are spammy and reduce engagement.
+- Never use em dashes. Use commas for punctuation instead.
+- Maintain a matter-of-fact tone. Avoid buzzwords, righteous language, or AI-sounding words like "leverage", "unlock", "revolutionize", "game-changer", "deep dive", "synergy", "elevate", "empower".
+- When given example text as context, use it as inspiration for style and tone. Create original content, never copy the input directly.
+- No filler phrases ("In today's world", "It goes without saying", "At the end of the day").`;
 
 /**
  * Tooltip tips shown in the compose UI to teach growth principles.

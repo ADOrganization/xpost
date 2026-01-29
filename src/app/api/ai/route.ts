@@ -7,7 +7,7 @@ import { rateLimit } from "@/lib/rate-limit";
 const VALID_ACTIONS: AiAction[] = [
   "rewrite", "improve", "shorter", "longer", "thread", "optimize",
   "tone_professional", "tone_casual", "tone_witty",
-  "tone_informative", "from_url",
+  "tone_informative", "from_url", "generate_single", "generate_thread",
 ];
 
 export async function POST(request: NextRequest) {

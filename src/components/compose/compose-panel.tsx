@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AccountSelector } from "@/components/compose/account-selector";
 import { ThreadBuilder } from "@/components/compose/thread-builder";
+import { AiGenerate } from "@/components/compose/ai-generate";
 import { PollBuilder } from "@/components/compose/poll-builder";
 import { SchedulePicker } from "@/components/compose/schedule-picker";
 import { ThreadPreview } from "@/components/compose/thread-preview";
@@ -341,6 +342,8 @@ export function ComposePanel({
               selectedId={state.selectedAccountId}
               onChange={handleAccountChange}
             />
+
+            <AiGenerate onGenerate={handleItemsUpdate} />
 
             <ThreadBuilder
               items={state.items}

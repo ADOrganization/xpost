@@ -11,7 +11,9 @@ export type AiAction =
   | "tone_casual"
   | "tone_witty"
   | "tone_informative"
-  | "from_url";
+  | "from_url"
+  | "generate_single"
+  | "generate_thread";
 
 const ACTION_INSTRUCTIONS: Record<AiAction, string> = {
   rewrite:
@@ -48,6 +50,10 @@ Return ONLY the optimized tweet text, no explanation.`,
     "Rewrite this tweet in an informative, educational tone. Walk through the insight step by step. Return ONLY the rewritten tweet text, no explanation.",
   from_url:
     "Based on the content from this URL, create an engaging tweet thread (3-5 tweets) summarizing the key points. First tweet must be a scroll-stopping hook. Each tweet under 280 characters. Number them 1/, 2/, etc. Return ONLY the thread tweets, each on a new line separated by ---.",
+  generate_single:
+    "Create a polished single tweet from the given context/topic. Optimize for replies (27x likes) and dwell time (22x likes). Start with a strong hook that stops the scroll. Max 280 characters. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the tweet text, no explanation.",
+  generate_thread:
+    "Create a 3-6 tweet thread from the given context/topic. Tweet 1 MUST be a scroll-stopping hook. Deliver actionable value in each following tweet. Number them 1/, 2/, etc. Last tweet should invite replies naturally. Front-load your strongest content (diversity decay: 2nd tweet 0.625x, 3rd+ 0.4375x). Each tweet under 280 characters. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the thread tweets separated by ---.",
 };
 
 export async function generateAiContent(
