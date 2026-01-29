@@ -293,9 +293,9 @@ export function ComposePanel({
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="flex flex-col lg:flex-row lg:gap-6">
+    <div className="mx-auto flex max-w-[980px] flex-col lg:flex-row lg:gap-6">
       {/* LEFT: compose controls */}
-      <div className="flex-1 min-w-0 space-y-6">
+      <div className="flex-1 min-w-0 max-w-[560px] space-y-6">
         {/* Account selector */}
         <AccountSelector
           accounts={accounts}

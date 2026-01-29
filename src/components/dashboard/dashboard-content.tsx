@@ -93,16 +93,18 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
 
   return (
     <div className="h-full overflow-auto">
-      {isLoadingEdit ? (
-        <ComposeSkeleton />
-      ) : (
-        <ComposePanel
-          accounts={accounts}
-          workspaceId={workspaceId}
-          editingPost={editingPost}
-          onPostSaved={handlePostSaved}
-        />
-      )}
+      <div className="mx-auto max-w-[980px]">
+        {isLoadingEdit ? (
+          <ComposeSkeleton />
+        ) : (
+          <ComposePanel
+            accounts={accounts}
+            workspaceId={workspaceId}
+            editingPost={editingPost}
+            onPostSaved={handlePostSaved}
+          />
+        )}
+      </div>
     </div>
   );
 }

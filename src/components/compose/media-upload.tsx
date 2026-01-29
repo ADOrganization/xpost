@@ -107,16 +107,60 @@ export function MediaUpload({ media, onChange, disabled = false, inline = false,
       onDragOver={inline ? (e) => { e.preventDefault(); if (!disabled) setDragOver(true); } : undefined}
       onDragLeave={inline ? (e) => { e.preventDefault(); setDragOver(false); } : undefined}
     >
-      {media.length > 0 && (
-        <div className="grid grid-cols-2 gap-2">
+      {media.length === 1 && (
+        <div className="relative group overflow-hidden rounded-xl border bg-muted aspect-video">
+          {media[0].mediaType === "VIDEO" ? (
+            <div className="flex h-full w-full items-center justify-center bg-muted">
+              <Video className="size-8 text-muted-foreground" />
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={media[0].url}
+              alt={media[0].altText || "Media 1"}
+              className="size-full object-cover"
+            />
+          )}
+          <Button
+            variant="destructive"
+            size="icon"
+            className="absolute top-1.5 right-1.5 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+            onClick={() => handleRemove(0)}
+            type="button"
+          >
+            <X className="size-3" />
+          </Button>
+          {media[0].mediaType !== "VIDEO" && (
+            <button
+              type="button"
+              className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white opacity-0 transition-opacity hover:bg-black/90 group-hover:opacity-100"
+              onClick={() => openAltDialog(0)}
+            >
+              {media[0].altText ? "ALT" : "+ALT"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {media.length >= 2 && (
+        <div
+          className={cn(
+            "grid aspect-video gap-0.5 overflow-hidden rounded-xl border",
+            media.length === 2 && "grid-cols-2",
+            media.length >= 3 && "grid-cols-2 grid-rows-2"
+          )}
+        >
           {media.map((m, index) => (
             <div
               key={`${m.url}-${index}`}
-              className="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
+              className={cn(
+                "group relative min-h-0 min-w-0 overflow-hidden bg-muted",
+                media.length === 3 && index === 0 && "row-span-2"
+              )}
             >
               {m.mediaType === "VIDEO" ? (
                 <div className="flex h-full w-full items-center justify-center bg-muted">
-                  <Video className="size-8 text-muted-foreground" />
+                  <Video className="size-6 text-muted-foreground" />
                 </div>
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -126,21 +170,19 @@ export function MediaUpload({ media, onChange, disabled = false, inline = false,
                   className="size-full object-cover"
                 />
               )}
-
               <Button
                 variant="destructive"
                 size="icon"
-                className="absolute top-1.5 right-1.5 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+                className="absolute top-1 right-1 h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
                 onClick={() => handleRemove(index)}
                 type="button"
               >
-                <X className="size-3" />
+                <X className="size-2.5" />
               </Button>
-
               {m.mediaType !== "VIDEO" && (
                 <button
                   type="button"
-                  className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white opacity-0 transition-opacity hover:bg-black/90 group-hover:opacity-100"
+                  className="absolute bottom-1 left-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white opacity-0 transition-opacity hover:bg-black/90 group-hover:opacity-100"
                   onClick={() => openAltDialog(index)}
                 >
                   {m.altText ? "ALT" : "+ALT"}
