@@ -12,7 +12,8 @@ export const X_ALGORITHM_SCORING = {
     replyWithAuthorEngagement: { weight: 75.0, relativeToLike: 150 },
     reply: { weight: 13.5, relativeToLike: 27 },
     goodProfileClick: { weight: 12.0, relativeToLike: 24 },
-    goodClick: { weight: 11.0, relativeToLike: 22 },
+    goodClickV1: { weight: 11.0, relativeToLike: 22 },
+    goodClickV2: { weight: 10.0, relativeToLike: 20 },
     retweet: { weight: 1.0, relativeToLike: 2 },
     like: { weight: 0.5, relativeToLike: 1 },
     videoPlayback50: { weight: 0.005, relativeToLike: 0.01 },
@@ -44,7 +45,8 @@ X ALGORITHM SCORING (from open-sourced code):
 | Reply w/ Author Engagement      | 75.0   | 150x    |
 | Reply                           | 13.5   | 27x     |
 | Profile Click                   | 12.0   | 24x     |
-| Good Click (dwell time)         | 11.0   | 22x     |
+| Good Click V1 (dwell time)      | 11.0   | 22x     |
+| Good Click V2                   | 10.0   | 20x     |
 | Retweet                         | 1.0    | 2x      |
 | Like                            | 0.5    | 1x      |
 | Video 50% Playback              | 0.005  | 0.01x   |

@@ -2,7 +2,7 @@
 
 import { useReducer, useCallback, useEffect, useState } from "react";
 import { nanoid } from "nanoid";
-import { Send, Save, Loader2, Sparkles } from "lucide-react";
+import { Send, Save, Loader2, Sparkles, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AccountSelector } from "@/components/compose/account-selector";
@@ -10,6 +10,8 @@ import { ThreadBuilder } from "@/components/compose/thread-builder";
 import { PollBuilder } from "@/components/compose/poll-builder";
 import { SchedulePicker } from "@/components/compose/schedule-picker";
 import { ThreadPreview } from "@/components/compose/thread-preview";
+import { AlgorithmScoreBar } from "@/components/compose/algorithm-score-bar";
+import { AlgorithmTips } from "@/components/compose/algorithm-tips";
 import { MIN_POLL_OPTIONS } from "@/lib/constants";
 import { createPost, updatePost, createAndPublishNow } from "@/actions/posts";
 import { toast } from "sonner";
@@ -364,21 +366,36 @@ export function ComposePanel({
           </Button>
         </div>
 
+        {/* Algorithm score bar — real-time content analysis */}
+        <AlgorithmScoreBar
+          text={state.items.map((i) => i.text).join("\n")}
+          hasMedia={hasMedia}
+          threadLength={state.items.length}
+        />
+
+        {/* Contextual algorithm tips */}
+        <AlgorithmTips
+          text={state.items.map((i) => i.text).join("\n")}
+          hasMedia={hasMedia}
+          threadLength={state.items.length}
+          scheduledAt={state.scheduledAt}
+        />
+
         {/* X Algorithm banner */}
-        <div className="rounded-lg border border-x-blue/20 bg-x-blue/5 px-4 py-3">
-          <div className="flex items-center justify-center gap-2 text-sm text-center">
-            <Sparkles className="size-4 shrink-0 text-x-blue" />
+        <div className="rounded-lg border border-x-blue/20 bg-x-blue/5 px-3 py-2.5">
+          <div className="flex items-center justify-center gap-2 text-xs text-center">
+            <Info className="size-3.5 shrink-0 text-x-blue" />
             <span className="text-muted-foreground">
-              Powered by{" "}
+              Scoring powered by{" "}
               <a
                 href="https://github.com/xai-org/x-algorithm"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-x-blue hover:underline"
               >
-                X&apos;s algorithm
+                X&apos;s open-sourced algorithm
               </a>
-              , scoring data &amp; growth case studies
+              , engagement data &amp; creator case studies
             </span>
           </div>
         </div>
