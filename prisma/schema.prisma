@@ -18,9 +18,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts    Account[]
-  sessions    Session[]
-  memberships WorkspaceMember[]
+  accounts      Account[]
+  sessions      Session[]
+  memberships   WorkspaceMember[]
+  comments      Comment[]
+  reviews       PostReview[]
+  notifications Notification[]
+  activityLogs  ActivityLog[]
 }
 
 model Account {
@@ -73,10 +77,11 @@ model Workspace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members  WorkspaceMember[]
-  invites  WorkspaceInvite[]
-  xAccounts XAccount[]
-  posts    Post[]
+  members      WorkspaceMember[]
+  invites      WorkspaceInvite[]
+  xAccounts    XAccount[]
+  posts        Post[]
+  activityLogs ActivityLog[]
 }
 
 model WorkspaceMember {
@@ -106,17 +111,17 @@ model WorkspaceInvite {
 // ─── X (Twitter) Account ───
 
 model XAccount {
-  id                 String @id @default(cuid())
-  workspaceId        String
-  xUserId            String @unique
-  username           String
-  displayName        String
-  profileImageUrl    String?
-  encryptedAccessToken  String @db.Text
-  encryptedRefreshToken String @db.Text
-  tokenExpiresAt     DateTime?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  workspaceId           String
+  xUserId               String   @unique
+  username              String
+  displayName           String
+  profileImageUrl       String?
+  encryptedAccessToken  String   @db.Text
+  encryptedRefreshToken String   @db.Text
+  tokenExpiresAt        DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   posts     Post[]
@@ -126,29 +131,42 @@ model XAccount {
 
 enum PostStatus {
   DRAFT
+  IN_REVIEW
   SCHEDULED
   PUBLISHING
   PUBLISHED
   FAILED
 }
 
-model Post {
-  id          String     @id @default(cuid())
-  workspaceId String
-  xAccountId  String?
-  status      PostStatus @default(DRAFT)
-  scheduledAt DateTime?
-  publishedAt DateTime?
-  retryCount  Int        @default(0)
-  error       String?    @db.Text
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+enum MediaType {
+  IMAGE
+  VIDEO
+  GIF
+}
 
-  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  xAccount    XAccount?    @relation(fields: [xAccountId], references: [id], onDelete: SetNull)
+model Post {
+  id           String     @id @default(cuid())
+  workspaceId  String
+  xAccountId   String?
+  status       PostStatus @default(DRAFT)
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  pollDuration Int?
+  retryCount   Int        @default(0)
+  error        String?    @db.Text
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  xAccount    XAccount?       @relation(fields: [xAccountId], references: [id], onDelete: SetNull)
   threadItems ThreadItem[]
+  comments    Comment[]
+  reviews     PostReview[]
+  analytics   PostAnalytics?
+  notifications Notification[]
 
   @@index([status, scheduledAt])
+  @@index([workspaceId, status])
 }
 
 model ThreadItem {
@@ -159,18 +177,19 @@ model ThreadItem {
   tweetId  String?
 
   post        Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  images      PostImage[]
+  media       PostMedia[]
   pollOptions PollOption[]
 
   @@unique([postId, position])
 }
 
-model PostImage {
-  id           String  @id @default(cuid())
+model PostMedia {
+  id           String    @id @default(cuid())
   threadItemId String
   url          String
   altText      String?
   position     Int
+  mediaType    MediaType @default(IMAGE)
 
   threadItem ThreadItem @relation(fields: [threadItemId], references: [id], onDelete: Cascade)
 
@@ -186,4 +205,87 @@ model PollOption {
   threadItem ThreadItem @relation(fields: [threadItemId], references: [id], onDelete: Cascade)
 
   @@unique([threadItemId, position])
+}
+
+// ─── Collaboration Models ───
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+model PostReview {
+  id        String       @id @default(cuid())
+  postId    String
+  userId    String
+  status    ReviewStatus
+  note      String?      @db.Text
+  createdAt DateTime     @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String   @db.Text
+  postId    String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read, createdAt])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  action      String
+  details     String?  @db.Text
+  postId      String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+}
+
+// ─── Analytics ───
+
+model PostAnalytics {
+  id          String   @id @default(cuid())
+  postId      String   @unique
+  impressions Int      @default(0)
+  likes       Int      @default(0)
+  retweets    Int      @default(0)
+  replies     Int      @default(0)
+  quotes      Int      @default(0)
+  bookmarks   Int      @default(0)
+  fetchedAt   DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

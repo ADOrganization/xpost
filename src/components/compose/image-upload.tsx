@@ -51,6 +51,7 @@ export function ImageUpload({
         url: URL.createObjectURL(file),
         altText: "",
         file,
+        mediaType: "IMAGE" as const,
       }));
 
       onChange([...images, ...newImages]);

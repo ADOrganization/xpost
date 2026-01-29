@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { CalendarIcon, X } from "lucide-react";
-import { format, addMinutes, isBefore } from "date-fns";
+import { useMemo, useEffect } from "react";
+import { CalendarIcon, X, Clock, Zap } from "lucide-react";
+import { format, addMinutes, addHours, addDays, isBefore, setHours, setMinutes, nextMonday } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -23,15 +23,47 @@ import { cn } from "@/lib/utils";
 interface SchedulePickerProps {
   date: Date | null;
   onChange: (date: Date | null) => void;
+  onValidChange?: (valid: boolean) => void;
 }
 
-export function SchedulePicker({ date, onChange }: SchedulePickerProps) {
+const QUICK_PRESETS = [
+  {
+    label: "In 1 hour",
+    icon: Clock,
+    getDate: () => addHours(new Date(), 1),
+  },
+  {
+    label: "Tomorrow 9 AM",
+    icon: Zap,
+    getDate: () => {
+      const d = addDays(new Date(), 1);
+      return setMinutes(setHours(d, 9), 0);
+    },
+  },
+  {
+    label: "Tomorrow 6 PM",
+    icon: Zap,
+    getDate: () => {
+      const d = addDays(new Date(), 1);
+      return setMinutes(setHours(d, 18), 0);
+    },
+  },
+  {
+    label: "Next Mon 9 AM",
+    icon: CalendarIcon,
+    getDate: () => {
+      const d = nextMonday(new Date());
+      return setMinutes(setHours(d, 9), 0);
+    },
+  },
+];
+
+export function SchedulePicker({ date, onChange, onValidChange }: SchedulePickerProps) {
   const minDate = useMemo(
     () => addMinutes(new Date(), MIN_SCHEDULE_MINUTES_AHEAD),
     []
   );
 
-  // Generate minute options in 5-minute increments
   const minuteOptions = useMemo(() => {
     const options: string[] = [];
     for (let m = 0; m < 60; m += 5) {
@@ -40,7 +72,6 @@ export function SchedulePicker({ date, onChange }: SchedulePickerProps) {
     return options;
   }, []);
 
-  // Extract time parts from current date
   const hour12 = date
     ? date.getHours() % 12 === 0
       ? 12
@@ -51,13 +82,18 @@ export function SchedulePicker({ date, onChange }: SchedulePickerProps) {
     : "00";
   const ampm = date ? (date.getHours() >= 12 ? "PM" : "AM") : "AM";
 
+  const timezone = useMemo(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return "";
+    }
+  }, []);
+
   function handleDateSelect(selectedDay: Date | undefined) {
     if (!selectedDay) return;
-
-    // Preserve existing time or use defaults
     const hours = date ? date.getHours() : 0;
     const mins = date ? date.getMinutes() : 0;
-
     const newDate = new Date(selectedDay);
     newDate.setHours(hours, mins, 0, 0);
     onChange(newDate);
@@ -81,7 +117,6 @@ export function SchedulePicker({ date, onChange }: SchedulePickerProps) {
 
     updated.setHours(hour24, m, 0, 0);
 
-    // If no date was set yet, set to today
     if (!date) {
       const today = new Date();
       updated.setFullYear(today.getFullYear(), today.getMonth(), today.getDate());
@@ -96,6 +131,10 @@ export function SchedulePicker({ date, onChange }: SchedulePickerProps) {
 
   const isValidSchedule =
     date && !isBefore(date, addMinutes(new Date(), MIN_SCHEDULE_MINUTES_AHEAD));
+
+  useEffect(() => {
+    onValidChange?.(!date || !!isValidSchedule);
+  }, [date, isValidSchedule, onValidChange]);
 
   return (
     <div className="space-y-3">
@@ -114,6 +153,25 @@ export function SchedulePicker({ date, onChange }: SchedulePickerProps) {
           </Button>
         )}
       </div>
+
+      {/* Quick presets */}
+      {!date && (
+        <div className="flex flex-wrap gap-1.5">
+          {QUICK_PRESETS.map((preset) => (
+            <Button
+              key={preset.label}
+              variant="outline"
+              size="sm"
+              type="button"
+              className="gap-1.5 text-xs"
+              onClick={() => onChange(preset.getDate())}
+            >
+              <preset.icon className="size-3" />
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+      )}
 
       <Popover>
         <PopoverTrigger asChild>
@@ -190,6 +248,12 @@ export function SchedulePicker({ date, onChange }: SchedulePickerProps) {
                 </SelectContent>
               </Select>
             </div>
+
+            {timezone && (
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                Timezone: {timezone}
+              </p>
+            )}
           </div>
         </PopoverContent>
       </Popover>

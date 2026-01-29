@@ -4,6 +4,7 @@ import { useRef, useEffect, useCallback } from "react";
 import { X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { AiAssist } from "@/components/compose/ai-assist";
 import { useCharacterCount } from "@/hooks/use-character-count";
 import { cn } from "@/lib/utils";
 
@@ -73,8 +74,9 @@ export function TweetEditor({
         rows={1}
       />
 
-      {/* Character counter */}
-      <div className="mt-2 flex justify-end">
+      {/* Bottom bar: AI assist + character counter */}
+      <div className="mt-2 flex items-center justify-between">
+        <AiAssist text={value} onAccept={onChange} />
         <span
           className={cn(
             "text-xs font-medium",

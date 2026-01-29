@@ -19,7 +19,7 @@ export async function GET(
       threadItems: {
         orderBy: { position: "asc" },
         include: {
-          images: { orderBy: { position: "asc" } },
+          media: { orderBy: { position: "asc" } },
           pollOptions: { orderBy: { position: "asc" } },
         },
       },

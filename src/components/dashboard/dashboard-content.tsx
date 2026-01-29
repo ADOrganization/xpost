@@ -3,13 +3,30 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useSWRConfig } from "swr";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { ComposePanel, type EditingPost } from "@/components/compose/compose-panel";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { XAccountOption } from "@/lib/types";
 
 interface DashboardContentProps {
   workspaceId: string;
   accounts: XAccountOption[];
+}
+
+function ComposeSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <div className="flex gap-3">
+        <Skeleton className="h-9 w-28" />
+        <Skeleton className="h-9 w-28" />
+      </div>
+    </div>
+  );
 }
 
 export function DashboardContent({ workspaceId, accounts }: DashboardContentProps) {
@@ -19,13 +36,17 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
   const editId = searchParams.get("edit");
 
   const [editingPost, setEditingPost] = useState<EditingPost | null>(null);
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
 
   // Fetch post data when editing
   useEffect(() => {
     if (!editId) {
       setEditingPost(null);
+      setIsLoadingEdit(false);
       return;
     }
+
+    setIsLoadingEdit(true);
 
     fetch(`/api/posts/${editId}`)
       .then((res) => {
@@ -37,45 +58,53 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
           id: post.id,
           threadItems: post.threadItems.map((item: any) => ({
             text: item.text,
-            images: item.images.map((img: any) => ({
-              url: img.url,
-              altText: img.altText || "",
+            media: (item.media || item.images || []).map((m: any) => ({
+              url: m.url,
+              altText: m.altText || "",
+              mediaType: m.mediaType || "IMAGE",
             })),
           })),
           pollOptions: post.threadItems[0]?.pollOptions?.map((opt: any) => opt.label) || [],
+          pollDuration: post.pollDuration ?? null,
           xAccountId: post.xAccountId,
           scheduledAt: post.scheduledAt,
           status: post.status,
         });
       })
       .catch(() => {
+        toast.error("Failed to load post for editing");
         setEditingPost(null);
         router.replace("/dashboard");
+      })
+      .finally(() => {
+        setIsLoadingEdit(false);
       });
   }, [editId, router]);
 
   const handlePostSaved = useCallback(() => {
-    // Revalidate all post lists
     mutate(
       (key: string) => typeof key === "string" && key.startsWith("/api/posts"),
       undefined,
       { revalidate: true }
     );
-    // Clear edit param
     if (editId) {
       router.replace("/dashboard");
     }
   }, [mutate, editId, router]);
 
   return (
-    <div className="flex gap-6 h-full">
-      <div className="w-1/3 min-w-[320px] shrink-0 overflow-auto">
-        <ComposePanel
-          accounts={accounts}
-          workspaceId={workspaceId}
-          editingPost={editingPost}
-          onPostSaved={handlePostSaved}
-        />
+    <div className="flex flex-col lg:flex-row gap-6 h-full">
+      <div className="w-full lg:w-1/3 lg:min-w-[320px] shrink-0 overflow-auto">
+        {isLoadingEdit ? (
+          <ComposeSkeleton />
+        ) : (
+          <ComposePanel
+            accounts={accounts}
+            workspaceId={workspaceId}
+            editingPost={editingPost}
+            onPostSaved={handlePostSaved}
+          />
+        )}
       </div>
       <div className="flex-1 min-w-0 overflow-auto">
         <DashboardTabs workspaceId={workspaceId} />

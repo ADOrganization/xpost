@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getActiveWorkspace } from "@/lib/workspace";
 import { rateLimit } from "@/lib/rate-limit";
@@ -32,20 +31,6 @@ export async function GET() {
     // Generate random state for CSRF protection
     const state = crypto.randomBytes(16).toString("hex");
 
-    // Store OAuth state in HTTP-only cookie
-    const cookieStore = await cookies();
-    cookieStore.set("x_oauth_state", JSON.stringify({
-      codeVerifier,
-      state,
-      workspaceId: workspace.id,
-    }), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 10, // 10 minutes
-    });
-
     // Build Twitter OAuth 2.0 authorization URL
     const params = new URLSearchParams({
       response_type: "code",
@@ -59,7 +44,22 @@ export async function GET() {
 
     const authorizationUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
 
-    return NextResponse.redirect(authorizationUrl);
+    // Set OAuth state cookie on the redirect response directly
+    // (cookies() from next/headers does not reliably attach to NextResponse.redirect)
+    const response = NextResponse.redirect(authorizationUrl);
+    response.cookies.set("x_oauth_state", JSON.stringify({
+      codeVerifier,
+      state,
+      workspaceId: workspace.id,
+    }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 10, // 10 minutes
+    });
+
+    return response;
   } catch (error) {
     console.error("X OAuth connect error:", error);
     return NextResponse.json(

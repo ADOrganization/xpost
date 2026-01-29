@@ -1,20 +1,19 @@
 "use client";
 
-import { useReducer, useCallback, useEffect } from "react";
+import { useReducer, useCallback, useEffect, useState } from "react";
 import { nanoid } from "nanoid";
-import { Send, Save } from "lucide-react";
+import { Send, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AccountSelector } from "@/components/compose/account-selector";
 import { ThreadBuilder } from "@/components/compose/thread-builder";
-import { ImageUpload } from "@/components/compose/image-upload";
 import { PollBuilder } from "@/components/compose/poll-builder";
 import { SchedulePicker } from "@/components/compose/schedule-picker";
-import { PostPreview } from "@/components/compose/post-preview";
+import { ThreadPreview } from "@/components/compose/thread-preview";
 import { MIN_POLL_OPTIONS } from "@/lib/constants";
-import { createPost, updatePost } from "@/actions/posts";
+import { createPost, updatePost, createAndPublishNow } from "@/actions/posts";
 import { toast } from "sonner";
-import type { ImageState, ThreadItemState, XAccountOption } from "@/lib/types";
+import type { MediaState, ThreadItemState, XAccountOption } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // EditingPost type (exported for use by parent components)
@@ -22,8 +21,9 @@ import type { ImageState, ThreadItemState, XAccountOption } from "@/lib/types";
 
 export interface EditingPost {
   id: string;
-  threadItems: { text: string; images: { url: string; altText: string }[] }[];
+  threadItems: { text: string; media: { url: string; altText: string; mediaType: string }[] }[];
   pollOptions: string[];
+  pollDuration: number | null;
   xAccountId: string | null;
   scheduledAt: string | null;
   status: string;
@@ -97,15 +97,16 @@ function composeReducer(
         items: post.threadItems.map((item) => ({
           id: nanoid(),
           text: item.text,
-          images: item.images.map((img) => ({
-            url: img.url,
-            altText: img.altText,
+          images: item.media.map((m) => ({
+            url: m.url,
+            altText: m.altText,
+            mediaType: (m.mediaType || "IMAGE") as MediaState["mediaType"],
           })),
           pollOptions: [],
         })),
         pollOptions: paddedPollOptions,
         pollEnabled: hasPoll,
-        pollDuration: 1440,
+        pollDuration: post.pollDuration ?? 1440,
         scheduledAt: post.scheduledAt ? new Date(post.scheduledAt) : null,
         selectedAccountId: post.xAccountId,
         isSaving: false,
@@ -117,23 +118,23 @@ function composeReducer(
 }
 
 // ---------------------------------------------------------------------------
-// Image upload helper
+// Media upload helper
 // ---------------------------------------------------------------------------
 
-async function uploadImages(
-  images: ImageState[]
-): Promise<{ url: string; altText: string }[]> {
-  const results: { url: string; altText: string }[] = [];
-  for (const img of images) {
-    if (img.file) {
+async function uploadMedia(
+  media: MediaState[]
+): Promise<{ url: string; altText: string; mediaType: string }[]> {
+  const results: { url: string; altText: string; mediaType: string }[] = [];
+  for (const m of media) {
+    if (m.file) {
       const formData = new FormData();
-      formData.append("file", img.file);
+      formData.append("file", m.file);
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Failed to upload image");
-      const { url } = await res.json();
-      results.push({ url, altText: img.altText });
+      if (!res.ok) throw new Error("Failed to upload media");
+      const data = await res.json();
+      results.push({ url: data.url, altText: m.altText, mediaType: data.mediaType || m.mediaType });
     } else {
-      results.push({ url: img.url, altText: img.altText });
+      results.push({ url: m.url, altText: m.altText, mediaType: m.mediaType });
     }
   }
   return results;
@@ -157,15 +158,14 @@ export function ComposePanel({
   editingPost,
 }: ComposePanelProps) {
   const [state, dispatch] = useReducer(composeReducer, undefined, createInitialState);
+  const [scheduleValid, setScheduleValid] = useState(true);
 
-  const firstItem = state.items[0];
-  const hasImages = firstItem.images.length > 0;
+  const hasMedia = state.items.some((item) => item.images.length > 0);
   const hasText = state.items.some((item) => item.text.trim().length > 0);
   const isEditing = !!editingPost;
 
-  // Mutual exclusion: poll disables images, images disable poll
-  const imageUploadDisabled = state.pollEnabled;
-  const pollToggleDisabled = hasImages;
+  // Mutual exclusion: poll disables media, media disable poll
+  const pollToggleDisabled = hasMedia;
 
   // Find the selected account for preview
   const selectedAccount = accounts.find(
@@ -188,18 +188,6 @@ export function ComposePanel({
     []
   );
 
-  const handleFirstItemImagesChange = useCallback(
-    (images: typeof firstItem.images) => {
-      dispatch({
-        type: "SET_ITEMS",
-        items: state.items.map((item, i) =>
-          i === 0 ? { ...item, images } : item
-        ),
-      });
-    },
-    [state.items]
-  );
-
   const handlePollOptionsChange = useCallback(
     (options: string[]) => {
       dispatch({ type: "SET_POLL_OPTIONS", options });
@@ -209,11 +197,10 @@ export function ComposePanel({
 
   const handlePollToggle = useCallback(
     (enabled: boolean) => {
-      // Don't enable poll if images are present
-      if (enabled && hasImages) return;
+      if (enabled && hasMedia) return;
       dispatch({ type: "TOGGLE_POLL", enabled });
     },
-    [hasImages]
+    [hasMedia]
   );
 
   const handlePollDurationChange = useCallback(
@@ -240,33 +227,47 @@ export function ComposePanel({
   async function handleSave(isDraft: boolean) {
     dispatch({ type: "SET_SAVING", saving: true });
     try {
-      // Upload images for each thread item
+      // Upload media for each thread item
       const processedItems = await Promise.all(
         state.items.map(async (item) => ({
           text: item.text,
-          imageUrls: await uploadImages(item.images),
+          imageUrls: await uploadMedia(item.images),
         }))
       );
 
-      const status = isDraft ? ("DRAFT" as const) : ("SCHEDULED" as const);
-      const data = {
-        workspaceId,
-        xAccountId: state.selectedAccountId ?? undefined,
-        items: processedItems,
-        pollOptions: state.pollEnabled
-          ? state.pollOptions.filter((o) => o.trim())
-          : undefined,
-        scheduledAt: isDraft
-          ? undefined
-          : (state.scheduledAt ?? undefined),
-        status,
-      };
+      const isPostNow = !isDraft && !state.scheduledAt;
 
       let result;
-      if (editingPost) {
-        result = await updatePost(editingPost.id, data);
+
+      if (isPostNow && !editingPost) {
+        result = await createAndPublishNow({
+          workspaceId,
+          xAccountId: state.selectedAccountId!,
+          items: processedItems,
+          pollOptions: state.pollEnabled
+            ? state.pollOptions.filter((o) => o.trim())
+            : undefined,
+          pollDuration: state.pollEnabled ? state.pollDuration : undefined,
+        });
       } else {
-        result = await createPost(data);
+        const status = isDraft ? ("DRAFT" as const) : ("SCHEDULED" as const);
+        const data = {
+          workspaceId,
+          xAccountId: state.selectedAccountId ?? undefined,
+          items: processedItems,
+          pollOptions: state.pollEnabled
+            ? state.pollOptions.filter((o) => o.trim())
+            : undefined,
+          pollDuration: state.pollEnabled ? state.pollDuration : undefined,
+          scheduledAt: isDraft ? undefined : state.scheduledAt!,
+          status,
+        };
+
+        if (editingPost) {
+          result = await updatePost(editingPost.id, data);
+        } else {
+          result = await createPost(data);
+        }
       }
 
       if (result.success) {
@@ -275,7 +276,7 @@ export function ComposePanel({
             ? "Draft saved"
             : state.scheduledAt
               ? "Post scheduled"
-              : "Post queued for publishing"
+              : "Posted to X"
         );
         dispatch({ type: "RESET" });
         onPostSaved?.();
@@ -300,17 +301,14 @@ export function ComposePanel({
         onChange={handleAccountChange}
       />
 
-      {/* Thread builder (main editing area) */}
-      <ThreadBuilder items={state.items} onUpdate={handleItemsUpdate} />
-
-      {/* Image upload for first thread item */}
-      <ImageUpload
-        images={firstItem.images}
-        onChange={handleFirstItemImagesChange}
-        disabled={imageUploadDisabled}
+      {/* Thread builder (main editing area with per-item media) */}
+      <ThreadBuilder
+        items={state.items}
+        onUpdate={handleItemsUpdate}
+        pollEnabled={state.pollEnabled}
       />
 
-      {/* Poll builder (first item only, mutual exclusion with images) */}
+      {/* Poll builder (first item only, mutual exclusion with media) */}
       <PollBuilder
         options={state.pollOptions}
         onChange={handlePollOptionsChange}
@@ -326,6 +324,7 @@ export function ComposePanel({
       <SchedulePicker
         date={state.scheduledAt}
         onChange={handleScheduleChange}
+        onValidChange={setScheduleValid}
       />
 
       {/* Action buttons */}
@@ -337,16 +336,24 @@ export function ComposePanel({
           type="button"
           className="gap-1.5"
         >
-          <Save className="size-4" />
+          {state.isSaving ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Save className="size-4" />
+          )}
           {isEditing ? "Update Draft" : "Save Draft"}
         </Button>
         <Button
           onClick={() => handleSave(false)}
-          disabled={state.isSaving || !hasText || !state.selectedAccountId}
+          disabled={state.isSaving || !hasText || !state.selectedAccountId || !scheduleValid}
           type="button"
           className="gap-1.5"
         >
-          <Send className="size-4" />
+          {state.isSaving ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Send className="size-4" />
+          )}
           {isEditing
             ? "Update"
             : state.scheduledAt
@@ -355,14 +362,12 @@ export function ComposePanel({
         </Button>
       </div>
 
-      {/* Preview */}
+      {/* Thread Preview (replaces old PostPreview) */}
       {hasText && selectedAccount && (
-        <PostPreview
-          text={firstItem.text}
-          images={firstItem.images}
-          displayName={selectedAccount.displayName}
-          username={selectedAccount.username}
-          profileImageUrl={selectedAccount.profileImageUrl}
+        <ThreadPreview
+          items={state.items}
+          account={selectedAccount}
+          pollOptions={state.pollEnabled ? state.pollOptions : undefined}
         />
       )}
     </div>

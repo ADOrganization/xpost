@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const PAGE_SIZE = 20;
+import { PAGE_SIZE } from "@/lib/constants";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +14,10 @@ export async function GET(request: NextRequest) {
     const workspaceId = searchParams.get("workspaceId");
     const status = searchParams.get("status");
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+    const q = searchParams.get("q");
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    const xAccountId = searchParams.get("xAccountId");
 
     if (!workspaceId) {
       return NextResponse.json(
@@ -41,18 +44,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Build the where clause
-    const where: {
-      workspaceId: string;
-      status?: "DRAFT" | "SCHEDULED" | "PUBLISHING" | "PUBLISHED" | "FAILED";
-    } = { workspaceId };
+    const where: Record<string, unknown> = { workspaceId };
 
-    if (
-      status &&
-      ["DRAFT", "SCHEDULED", "PUBLISHING", "PUBLISHED", "FAILED"].includes(
-        status
-      )
-    ) {
-      where.status = status as typeof where.status;
+    const validStatuses = ["DRAFT", "IN_REVIEW", "SCHEDULED", "PUBLISHING", "PUBLISHED", "FAILED"];
+    if (status && validStatuses.includes(status)) {
+      where.status = status;
+    }
+
+    if (xAccountId) {
+      where.xAccountId = xAccountId;
+    }
+
+    if (from || to) {
+      where.createdAt = {};
+      if (from) (where.createdAt as Record<string, unknown>).gte = new Date(from);
+      if (to) (where.createdAt as Record<string, unknown>).lte = new Date(to);
+    }
+
+    // Text search across thread items
+    if (q) {
+      where.threadItems = {
+        some: {
+          text: { contains: q, mode: "insensitive" },
+        },
+      };
     }
 
     // Determine ordering: SCHEDULED by scheduledAt ASC, others by createdAt DESC
@@ -61,32 +76,43 @@ export async function GET(request: NextRequest) {
         ? { scheduledAt: "asc" as const }
         : { createdAt: "desc" as const };
 
-    const posts = await prisma.post.findMany({
-      where,
-      include: {
-        threadItems: {
-          orderBy: { position: "asc" },
-          include: {
-            images: {
-              orderBy: { position: "asc" },
+    const [posts, total] = await Promise.all([
+      prisma.post.findMany({
+        where,
+        include: {
+          threadItems: {
+            orderBy: { position: "asc" },
+            include: {
+              media: {
+                orderBy: { position: "asc" },
+              },
             },
           },
-        },
-        xAccount: {
-          select: {
-            id: true,
-            username: true,
-            displayName: true,
-            profileImageUrl: true,
+          xAccount: {
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              profileImageUrl: true,
+            },
+          },
+          _count: {
+            select: { comments: true },
           },
         },
-      },
-      orderBy,
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    });
+        orderBy,
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+      }),
+      prisma.post.count({ where }),
+    ]);
 
-    return NextResponse.json(posts);
+    return NextResponse.json({
+      posts,
+      total,
+      page,
+      pageSize: PAGE_SIZE,
+    });
   } catch (error) {
     console.error("GET /api/posts error:", error);
     return NextResponse.json(

@@ -1,46 +1,12 @@
-import { getActiveWorkspace } from "@/lib/workspace";
-import { prisma } from "@/lib/prisma";
-import { startOfMonth, endOfMonth } from "date-fns";
+"use client";
+
 import { CalendarGrid } from "@/components/dashboard/calendar-grid";
+import { useWorkspace } from "@/hooks/use-workspace";
 
-export default async function CalendarPage() {
-  const { workspace } = await getActiveWorkspace();
+export default function CalendarPage() {
+  const { workspaceId } = useWorkspace();
 
-  // Fetch scheduled posts for a wide range (current month +/- 1 month)
-  // so navigation in the client component has data available
-  const now = new Date();
-  const rangeStart = startOfMonth(now);
-  const rangeEnd = endOfMonth(now);
-
-  const posts = await prisma.post.findMany({
-    where: {
-      workspaceId: workspace.id,
-      status: "SCHEDULED",
-      scheduledAt: {
-        gte: rangeStart,
-        lte: rangeEnd,
-      },
-    },
-    include: {
-      threadItems: {
-        orderBy: { position: "asc" },
-        select: {
-          id: true,
-          position: true,
-          text: true,
-        },
-      },
-    },
-    orderBy: { scheduledAt: "asc" },
-  });
-
-  // Serialize dates for client component
-  const serializedPosts = posts.map((p) => ({
-    id: p.id,
-    status: p.status,
-    scheduledAt: p.scheduledAt?.toISOString() ?? null,
-    threadItems: p.threadItems,
-  }));
+  if (!workspaceId) return null;
 
   return (
     <div className="space-y-6">
@@ -51,7 +17,7 @@ export default async function CalendarPage() {
         </p>
       </div>
 
-      <CalendarGrid posts={serializedPosts} workspaceId={workspace.id} />
+      <CalendarGrid workspaceId={workspaceId} />
     </div>
   );
 }

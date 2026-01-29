@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, type DragEvent } from "react";
+import useSWR from "swr";
 import {
   startOfMonth,
   endOfMonth,
@@ -16,10 +17,11 @@ import {
   setMinutes,
   setSeconds,
 } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { reschedulePost } from "@/actions/posts";
 import { cn } from "@/lib/utils";
+import { SWR_REFRESH_INTERVAL } from "@/lib/constants";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -37,7 +39,6 @@ interface CalendarPost {
 }
 
 interface CalendarGridProps {
-  posts: CalendarPost[];
   workspaceId: string;
 }
 
@@ -46,6 +47,8 @@ interface CalendarGridProps {
 // ---------------------------------------------------------------------------
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 function truncate(text: string, max: number): string {
   return text.length <= max ? text : text.slice(0, max).trimEnd() + "...";
@@ -61,17 +64,25 @@ function getPostsForDay(posts: CalendarPost[], day: Date): CalendarPost[] {
 // Component
 // ---------------------------------------------------------------------------
 
-export function CalendarGrid({ posts, workspaceId }: CalendarGridProps) {
+export function CalendarGrid({ workspaceId }: CalendarGridProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [localPosts, setLocalPosts] = useState(posts);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  const month = currentMonth.getMonth() + 1;
+  const year = currentMonth.getFullYear();
+
+  const { data, mutate } = useSWR<{ posts: CalendarPost[] }>(
+    `/api/posts/calendar?workspaceId=${workspaceId}&month=${month}&year=${year}`,
+    fetcher,
+    { refreshInterval: SWR_REFRESH_INTERVAL }
+  );
+
+  const posts = data?.posts ?? [];
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  // Pad the beginning of the grid to align with the correct weekday
-  const startPadding = getDay(monthStart); // 0 = Sunday
+  const startPadding = getDay(monthStart);
 
   const goToPrevMonth = useCallback(() => {
     setCurrentMonth((prev) => subMonths(prev, 1));
@@ -105,34 +116,27 @@ export function CalendarGrid({ posts, workspaceId }: CalendarGridProps) {
 
     setDraggingId(null);
 
-    // Find the original post to preserve the time
-    const original = localPosts.find((p) => p.id === postId);
+    const original = posts.find((p) => p.id === postId);
     if (!original || !original.scheduledAt) return;
 
     const originalDate = new Date(original.scheduledAt);
-    // Set the new date but keep the original time
     let newDate = setHours(targetDay, originalDate.getHours());
     newDate = setMinutes(newDate, originalDate.getMinutes());
     newDate = setSeconds(newDate, originalDate.getSeconds());
 
     // Optimistic update
-    setLocalPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId ? { ...p, scheduledAt: newDate.toISOString() } : p
-      )
+    mutate(
+      {
+        posts: posts.map((p) =>
+          p.id === postId ? { ...p, scheduledAt: newDate.toISOString() } : p
+        ),
+      },
+      false
     );
 
-    // Call server action
     const result = await reschedulePost(postId, newDate);
     if (!result.success) {
-      // Revert on failure
-      setLocalPosts((prev) =>
-        prev.map((p) =>
-          p.id === postId
-            ? { ...p, scheduledAt: original.scheduledAt }
-            : p
-        )
-      );
+      mutate(); // Revalidate on failure
     }
   }
 
@@ -178,14 +182,14 @@ export function CalendarGrid({ posts, workspaceId }: CalendarGridProps) {
 
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-px -mt-4 rounded-b-lg border border-t-0 bg-muted overflow-hidden">
-        {/* Padding cells for days before month start */}
+        {/* Padding cells */}
         {Array.from({ length: startPadding }).map((_, i) => (
           <div key={`pad-${i}`} className="min-h-[100px] bg-background/50" />
         ))}
 
         {/* Day cells */}
         {days.map((day) => {
-          const dayPosts = getPostsForDay(localPosts, day);
+          const dayPosts = getPostsForDay(posts, day);
           const isCurrentDay = isToday(day);
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isWeekend = getDay(day) === 0 || getDay(day) === 6;
@@ -202,7 +206,6 @@ export function CalendarGrid({ posts, workspaceId }: CalendarGridProps) {
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, day)}
             >
-              {/* Day number */}
               <div className="mb-1 flex items-center justify-end">
                 <span
                   className={cn(
@@ -216,7 +219,6 @@ export function CalendarGrid({ posts, workspaceId }: CalendarGridProps) {
                 </span>
               </div>
 
-              {/* Posts in this day */}
               <div className="space-y-1">
                 {dayPosts.map((post) => {
                   const text = post.threadItems[0]?.text ?? "";
@@ -249,7 +251,7 @@ export function CalendarGrid({ posts, workspaceId }: CalendarGridProps) {
           );
         })}
 
-        {/* Trailing padding cells to fill the last row */}
+        {/* Trailing padding */}
         {(() => {
           const totalCells = startPadding + days.length;
           const remainder = totalCells % 7;

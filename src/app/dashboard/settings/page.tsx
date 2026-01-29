@@ -1,6 +1,7 @@
 import { getActiveWorkspace } from "@/lib/workspace";
 import { XAccountsList } from "@/components/dashboard/x-accounts-list";
 import { WorkspaceNameEditor } from "@/components/dashboard/workspace-name-editor";
+import { OAuthFeedback } from "@/components/dashboard/oauth-feedback";
 import {
   Card,
   CardContent,
@@ -10,8 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
   const { workspace, role } = await getActiveWorkspace();
+  const params = await searchParams;
 
   const xAccounts = workspace.xAccounts.map((account) => ({
     id: account.id,
@@ -29,6 +35,11 @@ export default async function SettingsPage() {
           Manage your workspace and connected accounts.
         </p>
       </div>
+
+      <OAuthFeedback
+        success={params.success}
+        error={params.error}
+      />
 
       <Separator />
 

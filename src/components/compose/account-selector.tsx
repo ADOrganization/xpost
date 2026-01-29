@@ -40,7 +40,7 @@ export function AccountSelector({
   const selectedAccount = accounts.find((a) => a.id === selectedId);
 
   return (
-    <Select value={selectedId ?? undefined} onValueChange={onChange}>
+    <Select value={selectedId ?? ""} onValueChange={onChange}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Select an account">
           {selectedAccount && (
