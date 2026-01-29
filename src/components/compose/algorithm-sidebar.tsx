@@ -20,7 +20,7 @@ export function AlgorithmSidebar({
   const hasText = text.trim().length > 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {hasText ? (
         <>
           <AlgorithmScoreBar
@@ -29,7 +29,6 @@ export function AlgorithmSidebar({
             threadLength={threadLength}
             variant="sidebar"
           />
-
           <AlgorithmTips
             text={text}
             hasMedia={hasMedia}
@@ -38,26 +37,24 @@ export function AlgorithmSidebar({
           />
         </>
       ) : (
-        <div className="text-xs text-muted-foreground text-center py-4">
-          Start typing to see your algorithm score
-        </div>
+        <p className="text-[11px] text-muted-foreground text-center py-3">
+          Start typing to see score
+        </p>
       )}
 
-      {/* Algorithm attribution banner */}
-      <div className="rounded-lg border border-x-blue/20 bg-x-blue/5 px-2.5 py-2">
-        <div className="flex flex-col items-center gap-1.5 text-[10px] text-center">
-          <Info className="size-3 shrink-0 text-x-blue" />
-          <span className="text-muted-foreground leading-relaxed">
-            Scoring powered by{" "}
+      <div className="rounded-md border border-x-blue/20 bg-x-blue/5 px-2 py-1.5">
+        <div className="flex items-start gap-1.5 text-[10px] leading-relaxed">
+          <Info className="size-3 shrink-0 text-x-blue mt-0.5" />
+          <span className="text-muted-foreground">
+            Powered by{" "}
             <a
               href="https://github.com/xai-org/x-algorithm"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-x-blue hover:underline"
             >
-              X&apos;s open-sourced algorithm
+              X&apos;s algorithm
             </a>
-            , engagement data &amp; creator case studies
           </span>
         </div>
       </div>
