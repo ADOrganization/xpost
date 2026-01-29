@@ -3,7 +3,8 @@ import { XAccountsList } from "@/components/dashboard/x-accounts-list";
 import { WorkspaceNameEditor } from "@/components/dashboard/workspace-name-editor";
 import { OAuthFeedback } from "@/components/dashboard/oauth-feedback";
 import { ApiKeySettings } from "@/components/dashboard/api-key-settings";
-import { hasOpenAiKey } from "@/actions/user-settings";
+import { XCredentialsSettings } from "@/components/dashboard/x-credentials-settings";
+import { hasOpenAiKey, hasXCredentials } from "@/actions/user-settings";
 import {
   Card,
   CardContent,
@@ -21,6 +22,7 @@ export default async function SettingsPage({
   const { workspace, role } = await getActiveWorkspace();
   const params = await searchParams;
   const userHasKey = await hasOpenAiKey();
+  const userHasXCreds = await hasXCredentials();
 
   const xAccounts = workspace.xAccounts.map((account) => ({
     id: account.id,
@@ -55,6 +57,18 @@ export default async function SettingsPage({
         </CardHeader>
         <CardContent>
           <ApiKeySettings hasKey={userHasKey} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>X Developer App</CardTitle>
+          <CardDescription>
+            Your X API credentials. Posts use your own API credits.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <XCredentialsSettings hasCredentials={userHasXCreds} />
         </CardContent>
       </Card>
 

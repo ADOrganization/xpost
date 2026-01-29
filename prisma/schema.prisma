@@ -10,14 +10,16 @@ datasource db {
 // ─── NextAuth Models ───
 
 model User {
-  id                  String    @id @default(cuid())
-  name                String?
-  email               String    @unique
-  emailVerified       DateTime?
-  image               String?
-  encryptedOpenAiKey  String?   @db.Text
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                      String    @id @default(cuid())
+  name                    String?
+  email                   String    @unique
+  emailVerified           DateTime?
+  image                   String?
+  encryptedOpenAiKey      String?   @db.Text
+  encryptedXClientId      String?   @db.Text
+  encryptedXClientSecret  String?   @db.Text
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   accounts      Account[]
   sessions      Session[]
@@ -112,17 +114,19 @@ model WorkspaceInvite {
 // ─── X (Twitter) Account ───
 
 model XAccount {
-  id                    String   @id @default(cuid())
-  workspaceId           String
-  xUserId               String   @unique
-  username              String
-  displayName           String
-  profileImageUrl       String?
-  encryptedAccessToken  String   @db.Text
-  encryptedRefreshToken String   @db.Text
-  tokenExpiresAt        DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                      String   @id @default(cuid())
+  workspaceId             String
+  xUserId                 String   @unique
+  username                String
+  displayName             String
+  profileImageUrl         String?
+  encryptedAccessToken    String   @db.Text
+  encryptedRefreshToken   String   @db.Text
+  encryptedClientId       String?  @db.Text
+  encryptedClientSecret   String?  @db.Text
+  tokenExpiresAt          DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   posts     Post[]

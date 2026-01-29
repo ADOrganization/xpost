@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { auth } from "@/lib/auth";
 import { getActiveWorkspace } from "@/lib/workspace";
+import { getUserXCredentials } from "@/actions/user-settings";
 import { rateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
@@ -19,6 +20,14 @@ export async function GET() {
       );
     }
 
+    // Get user's own X Developer App credentials
+    const xCreds = await getUserXCredentials(session.user.id);
+    if (!xCreds) {
+      return NextResponse.redirect(
+        new URL("/dashboard/settings?error=missing_x_credentials", process.env.NEXTAUTH_URL!)
+      );
+    }
+
     const { workspace } = await getActiveWorkspace();
 
     // Generate PKCE values
@@ -31,10 +40,10 @@ export async function GET() {
     // Generate random state for CSRF protection
     const state = crypto.randomBytes(16).toString("hex");
 
-    // Build Twitter OAuth 2.0 authorization URL
+    // Build Twitter OAuth 2.0 authorization URL using user's own app
     const params = new URLSearchParams({
       response_type: "code",
-      client_id: process.env.X_CLIENT_ID!,
+      client_id: xCreds.clientId,
       redirect_uri: `${process.env.NEXTAUTH_URL}/api/x/callback`,
       scope: "tweet.read tweet.write users.read offline.access",
       state,
@@ -46,12 +55,12 @@ export async function GET() {
     const authorizationUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
 
     // Set OAuth state cookie on the redirect response directly
-    // (cookies() from next/headers does not reliably attach to NextResponse.redirect)
     const response = NextResponse.redirect(authorizationUrl);
     response.cookies.set("x_oauth_state", JSON.stringify({
       codeVerifier,
       state,
       workspaceId: workspace.id,
+      userId: session.user.id,
     }), {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

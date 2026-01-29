@@ -12,6 +12,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   state_mismatch: "OAuth state mismatch. Please try connecting again.",
   token_exchange: "Failed to exchange authorization code. Check your app credentials.",
   user_fetch: "Connected successfully but failed to fetch your X profile.",
+  missing_x_credentials: "Add your X Developer App credentials in Settings before connecting.",
   unknown: "Something went wrong. Please try again.",
 };
 

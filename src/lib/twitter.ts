@@ -5,6 +5,7 @@ import { encrypt, decrypt } from "@/lib/encryption";
 /**
  * Creates an authenticated TwitterApi client for the given XAccount.
  * Automatically refreshes the access token if it has expired.
+ * Uses the per-account X app credentials for token refresh.
  */
 export async function getTwitterClient(xAccountId: string): Promise<TwitterApi> {
   const xAccount = await prisma.xAccount.findUnique({
@@ -23,8 +24,18 @@ export async function getTwitterClient(xAccountId: string): Promise<TwitterApi> 
     xAccount.tokenExpiresAt.getTime() < Date.now() + 60_000;
 
   if (isExpired) {
+    // Get the per-account client credentials (stored at connection time)
+    if (!xAccount.encryptedClientId || !xAccount.encryptedClientSecret) {
+      throw new Error(
+        "XAccount is missing app credentials. Please reconnect this account in Settings."
+      );
+    }
+
+    const clientId = decrypt(xAccount.encryptedClientId);
+    const clientSecret = decrypt(xAccount.encryptedClientSecret);
     const refreshToken = decrypt(xAccount.encryptedRefreshToken);
-    const refreshed = await refreshAccessToken(refreshToken);
+
+    const refreshed = await refreshAccessToken(refreshToken, clientId, clientSecret);
 
     // Re-encrypt and persist new tokens
     await prisma.xAccount.update({
@@ -50,17 +61,13 @@ interface RefreshResult {
 
 /**
  * Refreshes an X/Twitter OAuth2 access token using the refresh token grant.
+ * Uses the provided client credentials (per-account, not shared env vars).
  */
-async function refreshAccessToken(refreshToken: string): Promise<RefreshResult> {
-  const clientId = process.env.X_CLIENT_ID;
-  const clientSecret = process.env.X_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error(
-      "X_CLIENT_ID and X_CLIENT_SECRET must be set in environment variables"
-    );
-  }
-
+async function refreshAccessToken(
+  refreshToken: string,
+  clientId: string,
+  clientSecret: string
+): Promise<RefreshResult> {
   const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   const response = await fetch("https://api.twitter.com/2/oauth2/token", {
