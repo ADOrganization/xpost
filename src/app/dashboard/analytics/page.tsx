@@ -26,7 +26,7 @@ function StatCard({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">
-          {value.toLocaleString()}
+          {(Number(value) || 0).toLocaleString()}
         </div>
       </CardContent>
     </Card>
@@ -66,7 +66,7 @@ export default function AnalyticsPage() {
     quotes: 0,
   };
 
-  const engagementRate = data.engagementRate ?? 0;
+  const engagementRate = Number(data.engagementRate) || 0;
   const totalEngagements =
     totals.likes + totals.retweets + totals.replies + totals.bookmarks + totals.quotes;
 

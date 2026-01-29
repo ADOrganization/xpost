@@ -15,18 +15,22 @@ export async function GET(request: NextRequest) {
   const where: Record<string, unknown> = { userId: session.user.id };
   if (unreadOnly) where.read = false;
 
-  const [notifications, unreadCount] = await Promise.all([
-    prisma.notification.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      take: limit,
-    }),
-    prisma.notification.count({
-      where: { userId: session.user.id, read: false },
-    }),
-  ]);
+  try {
+    const [notifications, unreadCount] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+      prisma.notification.count({
+        where: { userId: session.user.id, read: false },
+      }),
+    ]);
 
-  return NextResponse.json({ notifications, unreadCount });
+    return NextResponse.json({ notifications, unreadCount });
+  } catch {
+    return NextResponse.json({ notifications: [], unreadCount: 0 });
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -38,17 +42,21 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const { ids, markAllRead } = body;
 
-  if (markAllRead) {
-    await prisma.notification.updateMany({
-      where: { userId: session.user.id, read: false },
-      data: { read: true },
-    });
-  } else if (ids && Array.isArray(ids)) {
-    await prisma.notification.updateMany({
-      where: { id: { in: ids }, userId: session.user.id },
-      data: { read: true },
-    });
-  }
+  try {
+    if (markAllRead) {
+      await prisma.notification.updateMany({
+        where: { userId: session.user.id, read: false },
+        data: { read: true },
+      });
+    } else if (ids && Array.isArray(ids)) {
+      await prisma.notification.updateMany({
+        where: { id: { in: ids }, userId: session.user.id },
+        data: { read: true },
+      });
+    }
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch {
+    return NextResponse.json({ success: false });
+  }
 }

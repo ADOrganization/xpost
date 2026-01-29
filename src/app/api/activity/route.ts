@@ -32,19 +32,23 @@ export async function GET(request: NextRequest) {
     where.createdAt = { lt: new Date(cursor) };
   }
 
-  const logs = await prisma.activityLog.findMany({
-    where,
-    include: {
-      user: {
-        select: { id: true, name: true, email: true, image: true },
+  try {
+    const logs = await prisma.activityLog.findMany({
+      where,
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, image: true },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
 
-  return NextResponse.json({
-    logs,
-    nextCursor: logs.length === limit ? logs[logs.length - 1].createdAt.toISOString() : null,
-  });
+    return NextResponse.json({
+      logs,
+      nextCursor: logs.length === limit ? logs[logs.length - 1].createdAt.toISOString() : null,
+    });
+  } catch {
+    return NextResponse.json({ logs: [], nextCursor: null });
+  }
 }
