@@ -10,7 +10,7 @@ import { Mail, ArrowLeft } from "lucide-react";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const isVerify = searchParams.get("verify") === "true";
+  const isVerify = searchParams.get("verify")?.startsWith("true") ?? false;
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const [email, setEmail] = useState("");
@@ -19,8 +19,15 @@ export function LoginForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    await signIn("resend", { email, callbackUrl });
+    const result = await signIn("resend", {
+      email,
+      callbackUrl,
+      redirect: false,
+    });
     setLoading(false);
+    if (result?.ok) {
+      window.location.href = "/login?verify=true";
+    }
   }
 
   if (isVerify) {
