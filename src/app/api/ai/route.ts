@@ -5,7 +5,7 @@ import { getUserOpenAiKey } from "@/actions/user-settings";
 import { rateLimit } from "@/lib/rate-limit";
 
 const VALID_ACTIONS: AiAction[] = [
-  "rewrite", "improve", "shorter", "longer", "thread",
+  "rewrite", "improve", "shorter", "longer", "thread", "optimize",
   "tone_professional", "tone_casual", "tone_witty",
   "tone_informative", "from_url",
 ];

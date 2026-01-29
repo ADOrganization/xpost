@@ -7,6 +7,7 @@ import {
   ArrowUp,
   ArrowDown,
   MessageSquareText,
+  Zap,
   Loader2,
   Check,
   X,
@@ -26,7 +27,7 @@ interface AiAssistProps {
   onAccept: (text: string) => void;
 }
 
-type AiAction = "rewrite" | "improve" | "shorter" | "longer" | "thread";
+type AiAction = "rewrite" | "improve" | "shorter" | "longer" | "thread" | "optimize";
 
 const AI_ACTIONS: { action: AiAction; label: string; icon: typeof Sparkles }[] = [
   { action: "improve", label: "Improve", icon: Sparkles },
@@ -34,6 +35,7 @@ const AI_ACTIONS: { action: AiAction; label: string; icon: typeof Sparkles }[] =
   { action: "shorter", label: "Make shorter", icon: ArrowDown },
   { action: "longer", label: "Make longer", icon: ArrowUp },
   { action: "thread", label: "Generate thread", icon: MessageSquareText },
+  { action: "optimize", label: "Optimize for Algorithm", icon: Zap },
 ];
 
 export function AiAssist({ text, onAccept }: AiAssistProps) {

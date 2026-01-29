@@ -6,6 +6,7 @@ export type AiAction =
   | "shorter"
   | "longer"
   | "thread"
+  | "optimize"
   | "tone_professional"
   | "tone_casual"
   | "tone_witty"
@@ -16,13 +17,27 @@ const ACTION_INSTRUCTIONS: Record<AiAction, string> = {
   rewrite:
     "Rewrite this tweet to say the same thing in a fresh, engaging way. Keep the same meaning and approximate length. Return ONLY the rewritten tweet text, no explanation.",
   improve:
-    "Improve this tweet for clarity, engagement, and impact. Make the hook punchier, the formatting scannable (one sentence per line), and the value immediately obvious. Return ONLY the improved tweet text, no explanation.",
+    "Improve this tweet for maximum algorithmic reach. Make the hook punchier, the formatting scannable (one sentence per line), and structure it to provoke replies (27x likes). End with a question or invitation to share perspectives when natural. Optimize dwell time by making every line worth reading. Return ONLY the improved tweet text, no explanation.",
   shorter:
     "Make this tweet significantly shorter while keeping the key message. Cut every word that doesn't earn its place. Return ONLY the shortened tweet text, no explanation.",
   longer:
-    "Expand this tweet with actionable detail — walk through the process step by step. Keep it under 280 characters. Use line breaks for readability. Return ONLY the expanded tweet text, no explanation.",
+    "Expand this tweet with actionable detail — walk through the process step by step. Keep it under 280 characters. Use line breaks for readability. Optimize for dwell time (22x likes) by making every line substantive. Return ONLY the expanded tweet text, no explanation.",
   thread:
-    "Convert this idea into a Twitter thread of 3-5 tweets. The first tweet MUST be a scroll-stopping hook. Each following tweet delivers step-by-step actionable value. Each tweet under 280 characters. Number them 1/, 2/, etc. Return ONLY the thread tweets, each on a new line separated by ---.",
+    "Convert this idea into a Twitter thread of 3-5 tweets. The first tweet MUST be a scroll-stopping hook. Each following tweet delivers step-by-step actionable value. Each tweet under 280 characters. Number them 1/, 2/, etc. Note: the algorithm applies diversity decay (0.625x for 2nd tweet, 0.4375x for 3rd+) so front-load your strongest content in tweet 1. Return ONLY the thread tweets, each on a new line separated by ---.",
+  optimize:
+    `Rewrite this tweet to maximize its X algorithm score based on real engagement weights. Apply these specific optimizations:
+
+1. REPLY OPTIMIZATION (replies = 27x likes): Structure the content to provoke thoughtful replies. End with a question, controversial take, or invitation for perspectives. Make people want to respond, not just like.
+
+2. DWELL TIME (good clicks = 22x likes): Write content that stops the scroll. Use a strong hook, then deliver enough substance that people read the whole thing. One sentence per line for readability.
+
+3. PROFILE CLICK BAIT (24x likes): Include an insight or credential hint that makes the reader curious about who wrote this. Demonstrate authority or unique perspective.
+
+4. AVOID NEGATIVE SIGNALS (-148x for "Not Interested"): Keep content on-topic, valuable, and non-spammy. No engagement bait ("like if you agree"), no off-putting tone.
+
+5. COLD START (need 16+ engagements): Make the first line so compelling that early viewers immediately engage, pushing the tweet into algorithmic recommendation.
+
+Return ONLY the optimized tweet text, no explanation.`,
   tone_professional:
     "Rewrite this tweet in a professional, authoritative tone while keeping it scannable and punchy. Return ONLY the rewritten tweet text, no explanation.",
   tone_casual:
