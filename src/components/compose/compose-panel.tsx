@@ -2,7 +2,7 @@
 
 import { useReducer, useCallback, useEffect, useState } from "react";
 import { nanoid } from "nanoid";
-import { Send, Save, Loader2 } from "lucide-react";
+import { Send, Save, Loader2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AccountSelector } from "@/components/compose/account-selector";
@@ -10,7 +10,6 @@ import { ThreadBuilder } from "@/components/compose/thread-builder";
 import { PollBuilder } from "@/components/compose/poll-builder";
 import { SchedulePicker } from "@/components/compose/schedule-picker";
 import { ThreadPreview } from "@/components/compose/thread-preview";
-import { AlgorithmSidebar } from "@/components/compose/algorithm-sidebar";
 import { AlgorithmScoreBar } from "@/components/compose/algorithm-score-bar";
 import { AlgorithmTips } from "@/components/compose/algorithm-tips";
 import { MIN_POLL_OPTIONS } from "@/lib/constants";
@@ -299,15 +298,84 @@ export function ComposePanel({
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="mx-auto max-w-[1200px]">
-      {/* Mobile / Tablet (<xl): algorithm score inline above editor */}
-      <div className="xl:hidden mb-4">
-        <AlgorithmScoreBar
-          text={joinedText}
-          hasMedia={hasMedia}
-          threadLength={state.items.length}
+    <div className="mx-auto flex max-w-[960px] flex-col lg:flex-row lg:gap-6">
+      {/* LEFT: compose controls */}
+      <div className="flex-1 min-w-0 space-y-5">
+        {/* Account selector */}
+        <AccountSelector
+          accounts={accounts}
+          selectedId={state.selectedAccountId}
+          onChange={handleAccountChange}
         />
-        <div className="mt-2">
+
+        {/* Thread builder (main editing area with per-item media) */}
+        <ThreadBuilder
+          items={state.items}
+          onUpdate={handleItemsUpdate}
+          pollEnabled={state.pollEnabled}
+        />
+
+        {/* Poll builder (first item only, mutual exclusion with media) */}
+        <PollBuilder
+          options={state.pollOptions}
+          onChange={handlePollOptionsChange}
+          enabled={state.pollEnabled}
+          onToggle={handlePollToggle}
+          duration={state.pollDuration}
+          onDurationChange={handlePollDurationChange}
+        />
+
+        <Separator />
+
+        {/* Schedule picker */}
+        <SchedulePicker
+          date={state.scheduledAt}
+          onChange={handleScheduleChange}
+          onValidChange={setScheduleValid}
+        />
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => handleSave(true)}
+            disabled={state.isSaving || !hasText}
+            type="button"
+            className="gap-1.5"
+          >
+            {state.isSaving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {isEditing ? "Update Draft" : "Save Draft"}
+          </Button>
+          <Button
+            onClick={() => handleSave(false)}
+            disabled={state.isSaving || !hasText || !state.selectedAccountId || !scheduleValid}
+            type="button"
+            className="gap-1.5"
+          >
+            {state.isSaving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+            {isEditing
+              ? "Update"
+              : state.scheduledAt
+                ? "Schedule"
+                : "Post Now"}
+          </Button>
+        </div>
+
+        {/* Algorithm score + tips — compact inline */}
+        <div className="space-y-2">
+          <AlgorithmScoreBar
+            text={joinedText}
+            hasMedia={hasMedia}
+            threadLength={state.items.length}
+          />
           <AlgorithmTips
             text={joinedText}
             hasMedia={hasMedia}
@@ -315,106 +383,40 @@ export function ComposePanel({
             scheduledAt={state.scheduledAt}
           />
         </div>
-      </div>
 
-      <div className="flex flex-col lg:flex-row lg:gap-6">
-        {/* LEFT SIDEBAR: Algorithm scoring (xl+ only) */}
-        <div className="hidden xl:block xl:w-[220px] xl:shrink-0">
-          <div className="sticky top-4">
-            <AlgorithmSidebar
-              text={joinedText}
-              hasMedia={hasMedia}
-              threadLength={state.items.length}
-              scheduledAt={state.scheduledAt}
-            />
+        {/* Algorithm attribution */}
+        <div className="rounded-lg border border-x-blue/20 bg-x-blue/5 px-3 py-2">
+          <div className="flex items-center justify-center gap-2 text-xs text-center">
+            <Info className="size-3.5 shrink-0 text-x-blue" />
+            <span className="text-muted-foreground">
+              Scoring powered by{" "}
+              <a
+                href="https://github.com/xai-org/x-algorithm"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-x-blue hover:underline"
+              >
+                X&apos;s open-sourced algorithm
+              </a>
+              , engagement data &amp; creator case studies
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* CENTER: compose controls */}
-        <div className="flex-1 min-w-0 space-y-6">
-          {/* Account selector */}
-          <AccountSelector
-            accounts={accounts}
-            selectedId={state.selectedAccountId}
-            onChange={handleAccountChange}
-          />
-
-          {/* Thread builder (main editing area with per-item media) */}
-          <ThreadBuilder
+      {/* RIGHT: live preview (desktop — sticky, always visible) */}
+      <div className="hidden lg:block lg:w-[360px] lg:shrink-0">
+        <div className="sticky top-4">
+          <ThreadPreview
             items={state.items}
-            onUpdate={handleItemsUpdate}
-            pollEnabled={state.pollEnabled}
+            account={selectedAccount}
+            pollOptions={state.pollEnabled ? state.pollOptions : undefined}
           />
-
-          {/* Poll builder (first item only, mutual exclusion with media) */}
-          <PollBuilder
-            options={state.pollOptions}
-            onChange={handlePollOptionsChange}
-            enabled={state.pollEnabled}
-            onToggle={handlePollToggle}
-            duration={state.pollDuration}
-            onDurationChange={handlePollDurationChange}
-          />
-
-          <Separator />
-
-          {/* Schedule picker */}
-          <SchedulePicker
-            date={state.scheduledAt}
-            onChange={handleScheduleChange}
-            onValidChange={setScheduleValid}
-          />
-
-          {/* Action buttons */}
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => handleSave(true)}
-              disabled={state.isSaving || !hasText}
-              type="button"
-              className="gap-1.5"
-            >
-              {state.isSaving ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Save className="size-4" />
-              )}
-              {isEditing ? "Update Draft" : "Save Draft"}
-            </Button>
-            <Button
-              onClick={() => handleSave(false)}
-              disabled={state.isSaving || !hasText || !state.selectedAccountId || !scheduleValid}
-              type="button"
-              className="gap-1.5"
-            >
-              {state.isSaving ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Send className="size-4" />
-              )}
-              {isEditing
-                ? "Update"
-                : state.scheduledAt
-                  ? "Schedule"
-                  : "Post Now"}
-            </Button>
-          </div>
-        </div>
-
-        {/* RIGHT: live preview (lg+ — sticky, always visible with placeholder) */}
-        <div className="hidden lg:block lg:w-[380px] lg:shrink-0">
-          <div className="sticky top-4">
-            <ThreadPreview
-              items={state.items}
-              account={selectedAccount}
-              pollOptions={state.pollEnabled ? state.pollOptions : undefined}
-            />
-          </div>
         </div>
       </div>
 
-      {/* Mobile only: preview below editor */}
-      <div className="lg:hidden mt-6">
+      {/* Mobile: preview below editor */}
+      <div className="lg:hidden mt-5">
         <ThreadPreview
           items={state.items}
           account={selectedAccount}
