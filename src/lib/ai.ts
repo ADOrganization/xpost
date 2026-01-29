@@ -19,7 +19,7 @@ const ACTION_INSTRUCTIONS: Record<AiAction, string> = {
   rewrite:
     "Rewrite this tweet to say the same thing in a fresh, engaging way. Keep the same meaning and approximate length. Return ONLY the rewritten tweet text, no explanation.",
   improve:
-    "Improve this tweet for maximum algorithmic reach. Make the hook punchier, the formatting scannable (one sentence per line), and structure it to provoke replies (27x likes). End with a question or invitation to share perspectives when natural. Optimize dwell time by making every line worth reading. Return ONLY the improved tweet text, no explanation.",
+    "Improve this tweet for maximum algorithmic reach. Make the hook punchier, the formatting scannable (one sentence per line), and structure it so people naturally want to reply. Optimize dwell time by making every line worth reading. Do NOT add a question at the end unless one already exists or genuinely fits. Return ONLY the improved tweet text, no explanation.",
   shorter:
     "Make this tweet significantly shorter while keeping the key message. Cut every word that doesn't earn its place. Return ONLY the shortened tweet text, no explanation.",
   longer:
@@ -29,7 +29,7 @@ const ACTION_INSTRUCTIONS: Record<AiAction, string> = {
   optimize:
     `Rewrite this tweet to maximize its X algorithm score based on real engagement weights. Apply these specific optimizations:
 
-1. REPLY OPTIMIZATION (replies = 27x likes): Structure the content to provoke thoughtful replies. End with a question, controversial take, or invitation for perspectives. Make people want to respond, not just like.
+1. REPLY OPTIMIZATION (replies = 27x likes): Structure the content so people naturally want to respond. Strong takes, surprising insights, and relatable observations work better than forced questions. Do NOT default to ending with a question. Make people want to respond, not just like.
 
 2. DWELL TIME (good clicks = 22x likes): Write content that stops the scroll. Use a strong hook, then deliver enough substance that people read the whole thing. One sentence per line for readability.
 
@@ -51,9 +51,9 @@ Return ONLY the optimized tweet text, no explanation.`,
   from_url:
     "Based on the content from this URL, create an engaging tweet thread (3-5 tweets) summarizing the key points. First tweet must be a scroll-stopping hook. Each tweet under 280 characters. Number them 1/, 2/, etc. Return ONLY the thread tweets, each on a new line separated by ---.",
   generate_single:
-    "Create a polished single tweet from the given context/topic. Optimize for replies (27x likes) and dwell time (22x likes). Start with a strong hook that stops the scroll. Max 280 characters. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the tweet text, no explanation.",
+    "Create a polished single tweet from the given context/topic. Optimize for dwell time (22x likes) and natural reply triggers. Start with a strong hook that stops the scroll. Max 280 characters. Do not end with a question unless it genuinely fits. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the tweet text, no explanation.",
   generate_thread:
-    "Create a 3-6 tweet thread from the given context/topic. Tweet 1 MUST be a scroll-stopping hook. Deliver actionable value in each following tweet. Number them 1/, 2/, etc. Last tweet should invite replies naturally. Front-load your strongest content (diversity decay: 2nd tweet 0.625x, 3rd+ 0.4375x). Each tweet under 280 characters. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the thread tweets separated by ---.",
+    "Create a 3-6 tweet thread from the given context/topic. Tweet 1 MUST be a scroll-stopping hook. Deliver actionable value in each following tweet. Number them 1/, 2/, etc. End the thread with a strong closing statement, not a forced question. Front-load your strongest content (diversity decay: 2nd tweet 0.625x, 3rd+ 0.4375x). Each tweet under 280 characters. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the thread tweets separated by ---.",
 };
 
 export async function generateAiContent(

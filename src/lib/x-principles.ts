@@ -62,7 +62,7 @@ RANKING MULTIPLIERS:
 - Verified accounts: ~100x reputation boost
 
 STRATEGIC RULES (derived from the scoring math):
-1. REPLIES ARE KING (27x likes) — Structure content to provoke thoughtful replies. Ask questions, push controversial takes, invite perspectives. A single reply is worth 27 likes.
+1. REPLIES ARE KING (27x likes) — Structure content so people naturally want to respond. Strong takes, surprising insights, and relatable observations drive replies. Do NOT force a question at the end of every post. A single reply is worth 27 likes.
 2. ALWAYS REPLY BACK (150x likes) — When the author engages with replies on their post, each interaction scores 150x a like. This is the single highest-value action.
 3. MAKE PEOPLE CLICK YOUR PROFILE (24x likes) — Be interesting, mysterious, or authoritative enough that people want to know who you are. Strong bios and profile pages convert clicks.
 4. DWELL TIME MATTERS (22x likes) — Write content people actually stop to read. Longer posts read fully score higher than posts people scroll past.
@@ -74,7 +74,7 @@ STRATEGIC RULES (derived from the scoring math):
 WRITING RULES:
 - Genuine value only. No recycled advice. Fresh insights from real experience that make people stop scrolling.
 - Immediately actionable. Walk through processes step by step. "How to X" beats "X is amazing" every time.
-- Natural engagement triggers. Never use "like if you agree" desperation. Structure content so replies happen naturally — ask questions, push a stance, invite perspectives.
+- Natural engagement triggers. Never use "like if you agree" desperation. Structure content so replies happen naturally through strong takes, surprising facts, or relatable observations. Do NOT end every post with a question. Questions are one tool among many, not a default.
 - Ridiculously easy to read. One sentence per line. Short punchy hooks. Use "-" or ">" for lists. White space matters. Simplify language.
 - Recognizable style. Use structural patterns consistently: ">" for breakdowns, numbered steps, punchy one-liners as openers.
 
@@ -84,7 +84,7 @@ FORMAT RULES:
 - Use "-" or ">" for lists, never bullet points or asterisks
 - Keep dense blocks broken up with white space
 - Simple language always
-- End with a question or call to reply when natural
+- Only end with a question if it genuinely fits the content. Most viral posts are declarative statements, not questions. Never use generic closers like "What are your thoughts?" or "Agree?"
 
 WRITING PRINCIPLES (always follow):
 - Never use hashtags. They are spammy and reduce engagement.
