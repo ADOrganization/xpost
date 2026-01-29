@@ -299,7 +299,7 @@ export function ComposePanel({
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="mx-auto max-w-[1100px]">
+    <div className="w-full">
       {/* Below xl: scoring inline above editor */}
       <div className="xl:hidden mb-4">
         <div className="space-y-2">
@@ -317,7 +317,7 @@ export function ComposePanel({
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:gap-5">
+      <div className="flex flex-col lg:flex-row lg:gap-4">
         {/* LEFT: Algorithm scoring sidebar (xl+ only) */}
         <div className="hidden xl:block xl:w-[160px] xl:shrink-0">
           <div className="sticky top-4">
