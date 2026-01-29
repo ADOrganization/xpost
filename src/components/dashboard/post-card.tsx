@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { deletePost, publishNow } from "@/actions/posts";
 import { createShareLink, revokeShareLink } from "@/actions/share";
+import { FeedbackDialog } from "@/components/dashboard/feedback-dialog";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -86,6 +87,7 @@ export interface PostCardPost {
   xAccount?: XAccount | null;
   _count?: { comments: number };
   shareCommentCount?: number;
+  shareSuggestionCount?: number;
 }
 
 interface PostCardProps {
@@ -237,6 +239,7 @@ export function PostCard({
   const router = useRouter();
   const [isActing, setIsActing] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
 
   const firstItem = post.threadItems[0];
   const previewText = firstItem ? truncate(firstItem.text, 120) : "(empty)";
@@ -251,6 +254,8 @@ export function PostCard({
   );
   const commentCount = post._count?.comments ?? 0;
   const shareCommentCount = post.shareCommentCount ?? 0;
+  const shareSuggestionCount = post.shareSuggestionCount ?? 0;
+  const totalFeedbackCount = shareCommentCount + shareSuggestionCount;
   const badge = STATUS_BADGE[post.status];
 
   // First media for thumbnail
@@ -399,11 +404,18 @@ export function PostCard({
               </span>
             )}
 
-            {shareCommentCount > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+            {totalFeedbackCount > 0 && (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFeedbackDialogOpen(true);
+                }}
+              >
                 <Share2 className="size-3" />
-                {shareCommentCount}
-              </span>
+                {totalFeedbackCount} feedback
+              </button>
             )}
 
             {post.scheduledAt && post.status === "SCHEDULED" && (
@@ -482,6 +494,13 @@ export function PostCard({
           postId={post.id}
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
+        />
+
+        <FeedbackDialog
+          postId={post.id}
+          open={feedbackDialogOpen}
+          onOpenChange={setFeedbackDialogOpen}
+          onMutate={onMutate}
         />
       </CardContent>
     </Card>

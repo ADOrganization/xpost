@@ -32,7 +32,7 @@ export default function ActivityPage() {
   const activities: ActivityItem[] = data?.activities ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Activity</h1>
         <p className="text-sm text-muted-foreground">

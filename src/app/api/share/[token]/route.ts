@@ -38,6 +38,14 @@ export async function GET(
           },
           orderBy: { createdAt: "asc" },
         },
+        suggestions: {
+          include: {
+            user: {
+              select: { id: true, name: true, image: true },
+            },
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
     });
 
@@ -52,6 +60,7 @@ export async function GET(
     return NextResponse.json({
       post: shareLink.post,
       comments: shareLink.comments,
+      suggestions: shareLink.suggestions,
       shareLinkId: shareLink.id,
     });
   } catch (error) {

@@ -40,6 +40,14 @@ export default async function SharePage({
         },
         orderBy: { createdAt: "asc" },
       },
+      suggestions: {
+        include: {
+          user: {
+            select: { id: true, name: true, image: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 
@@ -67,6 +75,7 @@ export default async function SharePage({
         <SharedPostView
           post={JSON.parse(JSON.stringify(shareLink.post))}
           comments={JSON.parse(JSON.stringify(shareLink.comments))}
+          suggestions={JSON.parse(JSON.stringify(shareLink.suggestions))}
           shareLinkId={shareLink.id}
           token={token}
           isSignedIn={isSignedIn}

@@ -28,6 +28,7 @@ export function DashboardTabs({ workspaceId }: DashboardTabsProps) {
   }
 
   return (
+    <div className="mx-auto max-w-2xl">
     <Tabs defaultValue="all">
       <TabsList>
         <TabsTrigger value="all">All</TabsTrigger>
@@ -135,5 +136,6 @@ export function DashboardTabs({ workspaceId }: DashboardTabsProps) {
         )}
       </TabsContent>
     </Tabs>
+    </div>
   );
 }

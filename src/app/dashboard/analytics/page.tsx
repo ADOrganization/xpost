@@ -43,7 +43,7 @@ export default function AnalyticsPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
           <p className="text-sm text-muted-foreground">
@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
     totals.likes + totals.retweets + totals.replies + totals.bookmarks + totals.quotes;
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
         <p className="text-sm text-muted-foreground">

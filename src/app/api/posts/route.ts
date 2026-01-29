@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
           shareLinks: {
             where: { active: true },
             select: {
-              _count: { select: { comments: true } },
+              _count: { select: { comments: true, suggestions: true } },
             },
           },
         },
@@ -113,11 +113,15 @@ export async function GET(request: NextRequest) {
       prisma.post.count({ where }),
     ]);
 
-    // Flatten share comment counts into a single number per post
+    // Flatten share comment + suggestion counts into single numbers per post
     const posts = rawPosts.map(({ shareLinks, ...post }) => ({
       ...post,
       shareCommentCount: shareLinks.reduce(
         (sum, link) => sum + link._count.comments,
+        0
+      ),
+      shareSuggestionCount: shareLinks.reduce(
+        (sum, link) => sum + link._count.suggestions,
         0
       ),
     }));
