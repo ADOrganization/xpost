@@ -366,7 +366,7 @@ export function ComposePanel({
       </div>
 
       {/* RIGHT: live preview (sticky, desktop only) */}
-      {hasText && selectedAccount && (
+      {(hasText || hasMedia) && selectedAccount && (
         <div className="hidden lg:block lg:w-[400px] lg:shrink-0">
           <div className="sticky top-4">
             <ThreadPreview

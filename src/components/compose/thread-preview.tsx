@@ -11,7 +11,9 @@ interface ThreadPreviewProps {
 }
 
 export function ThreadPreview({ items, account, pollOptions }: ThreadPreviewProps) {
-  const nonEmptyItems = items.filter((item) => item.text.trim().length > 0);
+  const nonEmptyItems = items.filter(
+    (item) => item.text.trim().length > 0 || item.images.length > 0
+  );
 
   if (nonEmptyItems.length === 0) return null;
 

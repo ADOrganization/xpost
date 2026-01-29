@@ -40,6 +40,7 @@ export async function GET() {
       state,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
+      force_login: "true",
     });
 
     const authorizationUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
