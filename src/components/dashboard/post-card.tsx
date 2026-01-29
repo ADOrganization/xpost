@@ -23,6 +23,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -295,10 +296,10 @@ export function PostCard({
 
   return (
     <Card className={cn(
-      "gap-0 py-0 transition-all hover:border-muted-foreground/30 hover:shadow-sm",
+      "group gap-0 py-0 transition-all hover:bg-card/80 hover:border-muted-foreground/25",
       selected && "ring-2 ring-primary border-primary"
     )}>
-      <CardContent className="flex items-start gap-4 px-4 py-4">
+      <CardContent className="flex items-start gap-3 px-4 py-4">
         {/* Checkbox for bulk select */}
         {selectable && (
           <div className="pt-1">
@@ -309,57 +310,50 @@ export function PostCard({
           </div>
         )}
 
+        {/* X Account Avatar */}
+        {post.xAccount && (
+          <Avatar className="mt-0.5 h-9 w-9 shrink-0">
+            {post.xAccount.profileImageUrl && (
+              <AvatarImage src={post.xAccount.profileImageUrl} alt={post.xAccount.displayName} />
+            )}
+            <AvatarFallback className="text-xs bg-muted">
+              {post.xAccount.displayName.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        )}
+
         {/* Main content */}
-        <div className="flex-1 min-w-0 space-y-2">
-          {/* Status + meta row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={badge.variant} className={cn("text-[11px]", badge.className)}>
-              {badge.label}
-            </Badge>
-
+        <div className="flex-1 min-w-0 space-y-1.5">
+          {/* Top line: account + timestamp */}
+          <div className="flex items-center gap-1.5">
             {post.xAccount && (
-              <span className="text-xs text-muted-foreground">
-                @{post.xAccount.username}
-              </span>
+              <>
+                <span className="text-sm font-semibold truncate">
+                  {post.xAccount.displayName}
+                </span>
+                <span className="text-xs text-muted-foreground truncate">
+                  @{post.xAccount.username}
+                </span>
+                <span className="text-xs text-muted-foreground">·</span>
+              </>
             )}
-
-            {threadCount > 1 && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <MessageSquare className="size-3" />
-                {threadCount}
-              </span>
-            )}
-
-            {mediaCount > 0 && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                {videoCount > 0 ? <Video className="size-3" /> : <ImageIcon className="size-3" />}
-                {mediaCount}
-              </span>
-            )}
-
-            {commentCount > 0 && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <Eye className="size-3" />
-                {commentCount}
-              </span>
-            )}
-
-            {shareCommentCount > 0 && (
-              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <Share2 className="size-3" />
-                {shareCommentCount}
-              </span>
-            )}
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {post.scheduledAt && post.status === "SCHEDULED"
+                ? format(new Date(post.scheduledAt), "MMM d, h:mm a")
+                : post.publishedAt && post.status === "PUBLISHED"
+                  ? `Published ${relativeTime(post.publishedAt)}`
+                  : relativeTime(post.createdAt)}
+            </span>
           </div>
 
           {/* Text preview */}
-          <p className="text-sm leading-relaxed">{previewText}</p>
+          <p className="text-sm leading-relaxed text-foreground/90">{previewText}</p>
 
           {/* Media thumbnail strip */}
           {firstMedia && (
-            <div className="flex gap-1.5 overflow-hidden">
-              {firstItem.media.slice(0, 3).map((m) => (
-                <div key={m.id} className="relative h-12 w-16 shrink-0 overflow-hidden rounded border bg-muted">
+            <div className="flex gap-1.5 overflow-hidden pt-1">
+              {firstItem.media.slice(0, 4).map((m) => (
+                <div key={m.id} className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border bg-muted">
                   {m.mediaType === "VIDEO" ? (
                     <div className="flex h-full w-full items-center justify-center bg-muted">
                       <Video className="size-4 text-muted-foreground" />
@@ -370,37 +364,58 @@ export function PostCard({
                   )}
                 </div>
               ))}
-              {firstItem.media.length > 3 && (
-                <div className="flex h-12 w-8 items-center justify-center text-xs text-muted-foreground">
-                  +{firstItem.media.length - 3}
+              {firstItem.media.length > 4 && (
+                <div className="flex h-14 w-10 items-center justify-center text-xs text-muted-foreground">
+                  +{firstItem.media.length - 4}
                 </div>
               )}
             </div>
           )}
 
-          {/* Timestamps */}
-          {post.scheduledAt && post.status === "SCHEDULED" && (
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <CalendarClock className="size-3" />
-              {format(new Date(post.scheduledAt), "MMM d 'at' h:mm a")}
-              <span className="text-muted-foreground/60">({relativeTime(post.scheduledAt)})</span>
-            </p>
-          )}
+          {/* Bottom meta row: badges + counts */}
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
+            <Badge variant={badge.variant} className={cn("text-[11px] px-2 py-0", badge.className)}>
+              {badge.label}
+            </Badge>
 
-          {post.publishedAt && post.status === "PUBLISHED" && (
-            <p className="text-xs text-muted-foreground">
-              Published {relativeTime(post.publishedAt)}
-            </p>
-          )}
+            {threadCount > 1 && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <MessageSquare className="size-3" />
+                {threadCount} tweets
+              </span>
+            )}
 
-          {!post.scheduledAt && !post.publishedAt && (
-            <p className="text-xs text-muted-foreground">
-              {relativeTime(post.createdAt)}
-            </p>
-          )}
+            {mediaCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                {videoCount > 0 ? <Video className="size-3" /> : <ImageIcon className="size-3" />}
+                {mediaCount}
+              </span>
+            )}
+
+            {commentCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Eye className="size-3" />
+                {commentCount}
+              </span>
+            )}
+
+            {shareCommentCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <Share2 className="size-3" />
+                {shareCommentCount}
+              </span>
+            )}
+
+            {post.scheduledAt && post.status === "SCHEDULED" && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <CalendarClock className="size-3" />
+                {relativeTime(post.scheduledAt)}
+              </span>
+            )}
+          </div>
 
           {post.status === "FAILED" && post.error && (
-            <div className="flex items-start gap-1.5 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <div className="flex items-start gap-1.5 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive mt-1">
               <AlertCircle className="mt-0.5 size-3 shrink-0" />
               <span>{post.error}</span>
             </div>
@@ -410,7 +425,12 @@ export function PostCard({
         {/* Actions dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8" disabled={isActing}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              disabled={isActing}
+            >
               <MoreHorizontal className="size-4" />
               <span className="sr-only">Post actions</span>
             </Button>

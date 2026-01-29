@@ -2,7 +2,7 @@
 
 import { useReducer, useCallback, useEffect, useState } from "react";
 import { nanoid } from "nanoid";
-import { Send, Save, Loader2 } from "lucide-react";
+import { Send, Save, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { AccountSelector } from "@/components/compose/account-selector";
@@ -362,6 +362,24 @@ export function ComposePanel({
                 ? "Schedule"
                 : "Post Now"}
           </Button>
+        </div>
+
+        {/* X Algorithm banner */}
+        <div className="rounded-lg border border-x-blue/20 bg-x-blue/5 px-4 py-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Sparkles className="size-4 shrink-0 text-x-blue" />
+            <span className="text-muted-foreground">
+              AI Assist is trained on{" "}
+              <a
+                href="https://x.com/XEng/status/2013471689087086804"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-x-blue hover:underline"
+              >
+                X&apos;s official open-sourced algorithm principles
+              </a>
+            </span>
+          </div>
         </div>
       </div>
 
