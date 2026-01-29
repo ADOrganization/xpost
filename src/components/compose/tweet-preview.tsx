@@ -94,26 +94,42 @@ export function TweetPreview({
           </div>
         )}
 
-        {/* Media grid */}
-        {media.length > 0 && (
+        {/* Media grid — matches X's exact layout */}
+        {media.length === 1 && (
+          <div className="mt-3 overflow-hidden rounded-2xl border">
+            <div className="relative aspect-video bg-muted">
+              {media[0].mediaType === "VIDEO" ? (
+                <div className="flex h-full w-full items-center justify-center bg-muted">
+                  <div className="rounded-full bg-black/60 p-3">
+                    <div className="ml-0.5 h-0 w-0 border-y-[8px] border-l-[14px] border-y-transparent border-l-white" />
+                  </div>
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={media[0].url}
+                  alt={media[0].altText || ""}
+                  className="h-full w-full object-cover"
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {media.length >= 2 && (
           <div
             className={cn(
-              "mt-3 grid gap-0.5 overflow-hidden rounded-2xl border",
-              media.length === 1 && "grid-cols-1",
+              "mt-3 grid aspect-video gap-0.5 overflow-hidden rounded-2xl border",
               media.length === 2 && "grid-cols-2",
-              media.length >= 3 && "grid-cols-2"
+              media.length >= 3 && "grid-cols-2 grid-rows-2"
             )}
           >
             {media.map((m, index) => (
               <div
                 key={`${m.url}-${index}`}
                 className={cn(
-                  "relative overflow-hidden bg-muted",
-                  media.length === 1 && "aspect-video",
-                  media.length === 2 && "aspect-square",
-                  media.length === 3 && index === 0 && "row-span-2 aspect-auto h-full",
-                  media.length === 3 && index > 0 && "aspect-square",
-                  media.length === 4 && "aspect-square"
+                  "relative min-h-0 min-w-0 overflow-hidden bg-muted",
+                  media.length === 3 && index === 0 && "row-span-2"
                 )}
               >
                 {m.mediaType === "VIDEO" ? (
@@ -136,7 +152,7 @@ export function TweetPreview({
         )}
 
         {/* Action bar */}
-        <div className="mt-3 flex max-w-[300px] justify-between text-muted-foreground">
+        <div className="mt-3 flex justify-between text-muted-foreground">
           <button className="flex items-center gap-1 text-xs hover:text-primary transition-colors">
             <MessageCircle className="size-4" />
           </button>
