@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── NextAuth Models ───
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  memberships WorkspaceMember[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Workspace Models ───
+
+enum WorkspaceRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  WorkspaceMember[]
+  invites  WorkspaceInvite[]
+  xAccounts XAccount[]
+  posts    Post[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(EDITOR)
+  createdAt   DateTime      @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+model WorkspaceInvite {
+  id          String        @id @default(cuid())
+  workspaceId String
+  code        String        @unique
+  role        WorkspaceRole @default(EDITOR)
+  expiresAt   DateTime
+  createdAt   DateTime      @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// ─── X (Twitter) Account ───
+
+model XAccount {
+  id                 String @id @default(cuid())
+  workspaceId        String
+  xUserId            String @unique
+  username           String
+  displayName        String
+  profileImageUrl    String?
+  encryptedAccessToken  String @db.Text
+  encryptedRefreshToken String @db.Text
+  tokenExpiresAt     DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  posts     Post[]
+}
+
+// ─── Post Models ───
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  workspaceId String
+  xAccountId  String?
+  status      PostStatus @default(DRAFT)
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  retryCount  Int        @default(0)
+  error       String?    @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  xAccount    XAccount?    @relation(fields: [xAccountId], references: [id], onDelete: SetNull)
+  threadItems ThreadItem[]
+
+  @@index([status, scheduledAt])
+}
+
+model ThreadItem {
+  id       String @id @default(cuid())
+  postId   String
+  position Int
+  text     String @db.Text
+  tweetId  String?
+
+  post        Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  images      PostImage[]
+  pollOptions PollOption[]
+
+  @@unique([postId, position])
+}
+
+model PostImage {
+  id           String  @id @default(cuid())
+  threadItemId String
+  url          String
+  altText      String?
+  position     Int
+
+  threadItem ThreadItem @relation(fields: [threadItemId], references: [id], onDelete: Cascade)
+
+  @@unique([threadItemId, position])
+}
+
+model PollOption {
+  id           String @id @default(cuid())
+  threadItemId String
+  label        String
+  position     Int
+
+  threadItem ThreadItem @relation(fields: [threadItemId], references: [id], onDelete: Cascade)
+
+  @@unique([threadItemId, position])
+}

@@ -1,0 +1,12 @@
+export const TWEET_CHAR_LIMIT = 280;
+export const URL_CHAR_COUNT = 23; // X counts all URLs as 23 characters
+export const MAX_THREAD_ITEMS = 25;
+export const MAX_IMAGES_PER_TWEET = 4;
+export const MAX_IMAGE_SIZE_MB = 5;
+export const MAX_POLL_OPTIONS = 4;
+export const MIN_POLL_OPTIONS = 2;
+export const POLL_OPTION_CHAR_LIMIT = 25;
+export const PUBLISH_BATCH_SIZE = 10;
+export const MAX_RETRY_COUNT = 3;
+export const MIN_SCHEDULE_MINUTES_AHEAD = 5;
+export const SWR_REFRESH_INTERVAL = 30000; // 30 seconds

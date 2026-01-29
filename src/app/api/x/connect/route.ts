@@ -1,0 +1,70 @@
+import { NextResponse } from "next/server";
+import crypto from "crypto";
+import { cookies } from "next/headers";
+import { auth } from "@/lib/auth";
+import { getActiveWorkspace } from "@/lib/workspace";
+import { rateLimit } from "@/lib/rate-limit";
+
+export async function GET() {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { success } = rateLimit(`x-connect:${session.user.id}`, 5, 60 * 60 * 1000);
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many connection attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    const { workspace } = await getActiveWorkspace();
+
+    // Generate PKCE values
+    const codeVerifier = crypto.randomBytes(32).toString("hex");
+    const codeChallenge = crypto
+      .createHash("sha256")
+      .update(codeVerifier)
+      .digest("base64url");
+
+    // Generate random state for CSRF protection
+    const state = crypto.randomBytes(16).toString("hex");
+
+    // Store OAuth state in HTTP-only cookie
+    const cookieStore = await cookies();
+    cookieStore.set("x_oauth_state", JSON.stringify({
+      codeVerifier,
+      state,
+      workspaceId: workspace.id,
+    }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 10, // 10 minutes
+    });
+
+    // Build Twitter OAuth 2.0 authorization URL
+    const params = new URLSearchParams({
+      response_type: "code",
+      client_id: process.env.X_CLIENT_ID!,
+      redirect_uri: `${process.env.NEXTAUTH_URL}/api/x/callback`,
+      scope: "tweet.read tweet.write users.read offline.access",
+      state,
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+    });
+
+    const authorizationUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
+
+    return NextResponse.redirect(authorizationUrl);
+  } catch (error) {
+    console.error("X OAuth connect error:", error);
+    return NextResponse.json(
+      { error: "Failed to initiate OAuth flow" },
+      { status: 500 }
+    );
+  }
+}
