@@ -6,7 +6,6 @@ import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ComposePanel, type EditingPost } from "@/components/compose/compose-panel";
-import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { XAccountOption } from "@/lib/types";
 
@@ -93,22 +92,17 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
   }, [mutate, editId, router]);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-6 h-full">
-      <div className="w-full xl:w-3/5 xl:min-w-[720px] shrink-0 overflow-auto">
-        {isLoadingEdit ? (
-          <ComposeSkeleton />
-        ) : (
-          <ComposePanel
-            accounts={accounts}
-            workspaceId={workspaceId}
-            editingPost={editingPost}
-            onPostSaved={handlePostSaved}
-          />
-        )}
-      </div>
-      <div className="flex-1 min-w-0 overflow-auto">
-        <DashboardTabs workspaceId={workspaceId} />
-      </div>
+    <div className="h-full overflow-auto">
+      {isLoadingEdit ? (
+        <ComposeSkeleton />
+      ) : (
+        <ComposePanel
+          accounts={accounts}
+          workspaceId={workspaceId}
+          editingPost={editingPost}
+          onPostSaved={handlePostSaved}
+        />
+      )}
     </div>
   );
 }
