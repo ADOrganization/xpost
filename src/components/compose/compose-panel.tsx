@@ -366,19 +366,19 @@ export function ComposePanel({
 
         {/* X Algorithm banner */}
         <div className="rounded-lg border border-x-blue/20 bg-x-blue/5 px-4 py-3">
-          <div className="flex items-start gap-2 text-sm">
-            <Sparkles className="size-4 mt-0.5 shrink-0 text-x-blue" />
+          <div className="flex items-center justify-center gap-2 text-sm text-center">
+            <Sparkles className="size-4 shrink-0 text-x-blue" />
             <span className="text-muted-foreground">
-              AI Assist is powered by{" "}
+              Powered by{" "}
               <a
                 href="https://github.com/xai-org/x-algorithm"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-x-blue hover:underline"
               >
-                X&apos;s open-sourced algorithm
+                X&apos;s algorithm
               </a>
-              , real engagement scoring data, and creator growth case studies
+              , scoring data &amp; growth case studies
             </span>
           </div>
         </div>
