@@ -176,6 +176,7 @@ export function SharedPostView({
                   pollOptions={pollOptions}
                   isThread={post.threadItems.length > 1}
                   showConnector={index < post.threadItems.length - 1}
+                  hideActions
                 />
               );
             })}
