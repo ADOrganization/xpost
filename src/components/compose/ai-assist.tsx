@@ -6,7 +6,6 @@ import {
   RefreshCw,
   ArrowUp,
   ArrowDown,
-  Hash,
   MessageSquareText,
   Loader2,
   Check,
@@ -19,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import { COMPOSE_TIPS, AI_ACTION_DESCRIPTIONS } from "@/lib/x-principles";
 
 interface AiAssistProps {
@@ -26,14 +26,13 @@ interface AiAssistProps {
   onAccept: (text: string) => void;
 }
 
-type AiAction = "rewrite" | "improve" | "shorter" | "longer" | "hashtags" | "thread";
+type AiAction = "rewrite" | "improve" | "shorter" | "longer" | "thread";
 
 const AI_ACTIONS: { action: AiAction; label: string; icon: typeof Sparkles }[] = [
   { action: "improve", label: "Improve", icon: Sparkles },
   { action: "rewrite", label: "Rewrite", icon: RefreshCw },
   { action: "shorter", label: "Make shorter", icon: ArrowDown },
   { action: "longer", label: "Make longer", icon: ArrowUp },
-  { action: "hashtags", label: "Suggest hashtags", icon: Hash },
   { action: "thread", label: "Generate thread", icon: MessageSquareText },
 ];
 
@@ -56,12 +55,19 @@ export function AiAssist({ text, onAccept }: AiAssistProps) {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        if (res.status === 403) {
+          toast.error(err.error || "Add your OpenAI API key in Settings");
+          setOpen(false);
+          return;
+        }
         throw new Error(err.error || "AI request failed");
       }
 
       const data = await res.json();
       setSuggestion(data.result);
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "AI request failed";
+      toast.error(message);
       setSuggestion(null);
     } finally {
       setIsLoading(false);

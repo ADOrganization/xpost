@@ -2,6 +2,8 @@ import { getActiveWorkspace } from "@/lib/workspace";
 import { XAccountsList } from "@/components/dashboard/x-accounts-list";
 import { WorkspaceNameEditor } from "@/components/dashboard/workspace-name-editor";
 import { OAuthFeedback } from "@/components/dashboard/oauth-feedback";
+import { ApiKeySettings } from "@/components/dashboard/api-key-settings";
+import { hasOpenAiKey } from "@/actions/user-settings";
 import {
   Card,
   CardContent,
@@ -18,6 +20,7 @@ export default async function SettingsPage({
 }) {
   const { workspace, role } = await getActiveWorkspace();
   const params = await searchParams;
+  const userHasKey = await hasOpenAiKey();
 
   const xAccounts = workspace.xAccounts.map((account) => ({
     id: account.id,
@@ -42,6 +45,18 @@ export default async function SettingsPage({
       />
 
       <Separator />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>OpenAI API Key</CardTitle>
+          <CardDescription>
+            Required for AI Assist. Each user provides their own key.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ApiKeySettings hasKey={userHasKey} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

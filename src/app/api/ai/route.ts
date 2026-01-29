@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { generateAiContent, type AiAction } from "@/lib/ai";
+import { getUserOpenAiKey } from "@/actions/user-settings";
 import { rateLimit } from "@/lib/rate-limit";
 
 const VALID_ACTIONS: AiAction[] = [
   "rewrite", "improve", "shorter", "longer", "thread",
-  "hashtags", "tone_professional", "tone_casual", "tone_witty",
+  "tone_professional", "tone_casual", "tone_witty",
   "tone_informative", "from_url",
 ];
 
@@ -31,8 +32,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Text is required" }, { status: 400 });
   }
 
+  // Get the user's own API key
+  const apiKey = await getUserOpenAiKey(session.user.id);
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "Add your OpenAI API key in Settings to use AI Assist" },
+      { status: 403 }
+    );
+  }
+
   try {
-    const result = await generateAiContent(action, text);
+    const result = await generateAiContent(action, text, apiKey);
     return NextResponse.json({ result });
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI generation failed";

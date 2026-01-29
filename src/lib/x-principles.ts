@@ -57,6 +57,5 @@ export const AI_ACTION_DESCRIPTIONS: Record<string, string> = {
   improve: "Punchier hooks, cleaner formatting, stronger value",
   shorter: "Cut the fluff. Every word should earn its spot",
   longer: "Add actionable detail — blueprints beat opinions",
-  hashtags: "Relevant tags that boost discoverability",
   thread: "Split into a step-by-step thread with a scroll-stopping hook",
 };

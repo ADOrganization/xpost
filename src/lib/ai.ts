@@ -1,14 +1,11 @@
 import { X_GROWTH_SYSTEM_PREAMBLE } from "@/lib/x-principles";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
 export type AiAction =
   | "rewrite"
   | "improve"
   | "shorter"
   | "longer"
   | "thread"
-  | "hashtags"
   | "tone_professional"
   | "tone_casual"
   | "tone_witty"
@@ -26,8 +23,6 @@ const ACTION_INSTRUCTIONS: Record<AiAction, string> = {
     "Expand this tweet with actionable detail — walk through the process step by step. Keep it under 280 characters. Use line breaks for readability. Return ONLY the expanded tweet text, no explanation.",
   thread:
     "Convert this idea into a Twitter thread of 3-5 tweets. The first tweet MUST be a scroll-stopping hook. Each following tweet delivers step-by-step actionable value. Each tweet under 280 characters. Number them 1/, 2/, etc. Return ONLY the thread tweets, each on a new line separated by ---.",
-  hashtags:
-    "Suggest 3-5 relevant hashtags for this tweet that will boost discoverability. Return ONLY the hashtags separated by spaces, no explanation.",
   tone_professional:
     "Rewrite this tweet in a professional, authoritative tone while keeping it scannable and punchy. Return ONLY the rewritten tweet text, no explanation.",
   tone_casual:
@@ -42,18 +37,15 @@ const ACTION_INSTRUCTIONS: Record<AiAction, string> = {
 
 export async function generateAiContent(
   action: AiAction,
-  text: string
+  text: string,
+  apiKey: string
 ): Promise<string> {
-  if (!OPENAI_API_KEY) {
-    throw new Error("AI features require OPENAI_API_KEY to be configured");
-  }
-
   const systemPrompt = `${X_GROWTH_SYSTEM_PREAMBLE}\n\nTASK:\n${ACTION_INSTRUCTIONS[action]}`;
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
