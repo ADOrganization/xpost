@@ -50,25 +50,22 @@ export default async function SettingsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>OpenAI API Key</CardTitle>
+          <CardTitle>Workspace</CardTitle>
           <CardDescription>
-            Required for AI Assist. Each user provides their own key.
+            Your workspace details and configuration.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ApiKeySettings hasKey={userHasKey} />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>X Developer App</CardTitle>
-          <CardDescription>
-            Your X API credentials. Posts use your own API credits.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <XCredentialsSettings hasCredentials={userHasXCreds} />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">
+              Workspace Name
+            </label>
+            <WorkspaceNameEditor
+              workspaceId={workspace.id}
+              currentName={workspace.name}
+              canEdit={role === "OWNER"}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -89,22 +86,25 @@ export default async function SettingsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Workspace</CardTitle>
+          <CardTitle>X Developer App</CardTitle>
           <CardDescription>
-            Your workspace details and configuration.
+            Your X API credentials. Posts use your own API credits.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground">
-              Workspace Name
-            </label>
-            <WorkspaceNameEditor
-              workspaceId={workspace.id}
-              currentName={workspace.name}
-              canEdit={role === "OWNER"}
-            />
-          </div>
+          <XCredentialsSettings hasCredentials={userHasXCreds} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>OpenAI API Key</CardTitle>
+          <CardDescription>
+            Required for AI Assist. Each user provides their own key.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ApiKeySettings hasKey={userHasKey} />
         </CardContent>
       </Card>
     </div>

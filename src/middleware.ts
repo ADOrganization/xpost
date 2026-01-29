@@ -14,6 +14,8 @@ export default auth((req) => {
     pathname.startsWith("/api/webhooks") ||
     pathname.startsWith("/api/x/callback") ||
     pathname.startsWith("/invite") ||
+    pathname.startsWith("/share") ||
+    pathname.startsWith("/api/share") ||
     pathname.startsWith("/_next") ||
     pathname.includes(".")
   ) {

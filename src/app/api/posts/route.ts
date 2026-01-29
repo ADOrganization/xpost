@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         ? { scheduledAt: "asc" as const }
         : { createdAt: "desc" as const };
 
-    const [posts, total] = await Promise.all([
+    const [rawPosts, total] = await Promise.all([
       prisma.post.findMany({
         where,
         include: {
@@ -99,6 +99,12 @@ export async function GET(request: NextRequest) {
           _count: {
             select: { comments: true },
           },
+          shareLinks: {
+            where: { active: true },
+            select: {
+              _count: { select: { comments: true } },
+            },
+          },
         },
         orderBy,
         skip: (page - 1) * PAGE_SIZE,
@@ -106,6 +112,15 @@ export async function GET(request: NextRequest) {
       }),
       prisma.post.count({ where }),
     ]);
+
+    // Flatten share comment counts into a single number per post
+    const posts = rawPosts.map(({ shareLinks, ...post }) => ({
+      ...post,
+      shareCommentCount: shareLinks.reduce(
+        (sum, link) => sum + link._count.comments,
+        0
+      ),
+    }));
 
     return NextResponse.json({
       posts,

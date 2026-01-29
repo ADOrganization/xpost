@@ -23,11 +23,13 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
-  memberships   WorkspaceMember[]
-  comments      Comment[]
-  reviews       PostReview[]
-  notifications Notification[]
-  activityLogs  ActivityLog[]
+  memberships    WorkspaceMember[]
+  comments       Comment[]
+  reviews        PostReview[]
+  notifications  Notification[]
+  activityLogs   ActivityLog[]
+  shareLinks     ShareLink[]
+  shareComments  ShareComment[]
 }
 
 model Account {
@@ -162,13 +164,14 @@ model Post {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  xAccount    XAccount?       @relation(fields: [xAccountId], references: [id], onDelete: SetNull)
-  threadItems ThreadItem[]
-  comments    Comment[]
-  reviews     PostReview[]
-  analytics   PostAnalytics?
+  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  xAccount      XAccount?       @relation(fields: [xAccountId], references: [id], onDelete: SetNull)
+  threadItems   ThreadItem[]
+  comments      Comment[]
+  reviews       PostReview[]
+  analytics     PostAnalytics?
   notifications Notification[]
+  shareLinks    ShareLink[]
 
   @@index([status, scheduledAt])
   @@index([workspaceId, status])
@@ -277,6 +280,39 @@ model ActivityLog {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId, createdAt])
+}
+
+// ─── Share Links ───
+
+model ShareLink {
+  id        String   @id @default(cuid())
+  token     String   @unique @default(cuid())
+  postId    String
+  createdBy String
+  expiresAt DateTime?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  post     Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user     User           @relation(fields: [createdBy], references: [id])
+  comments ShareComment[]
+
+  @@index([postId])
+  @@index([token])
+}
+
+model ShareComment {
+  id          String   @id @default(cuid())
+  shareLinkId String
+  userId      String
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  shareLink ShareLink @relation(fields: [shareLinkId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([shareLinkId])
 }
 
 // ─── Analytics ───

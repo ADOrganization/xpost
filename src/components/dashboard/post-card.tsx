@@ -14,6 +14,10 @@ import {
   Video,
   AlertCircle,
   Eye,
+  Share2,
+  Copy,
+  Link2Off,
+  Check,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +30,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { deletePost, publishNow } from "@/actions/posts";
+import { createShareLink, revokeShareLink } from "@/actions/share";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -72,6 +84,7 @@ export interface PostCardPost {
   threadItems: ThreadItem[];
   xAccount?: XAccount | null;
   _count?: { comments: number };
+  shareCommentCount?: number;
 }
 
 interface PostCardProps {
@@ -80,6 +93,108 @@ interface PostCardProps {
   selectable?: boolean;
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
+}
+
+// ---------------------------------------------------------------------------
+// Share Dialog Sub-component
+// ---------------------------------------------------------------------------
+
+function ShareDialog({
+  postId,
+  open,
+  onOpenChange,
+}: {
+  postId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareLinkId, setShareLinkId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCreate() {
+    setIsLoading(true);
+    try {
+      const result = await createShareLink(postId);
+      if (result.success) {
+        setShareUrl(result.url);
+        setShareLinkId(result.shareLinkId);
+      } else {
+        toast.error(result.error || "Failed to create share link");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleRevoke() {
+    if (!shareLinkId) return;
+    setIsLoading(true);
+    try {
+      const result = await revokeShareLink(shareLinkId);
+      if (result.success) {
+        setShareUrl(null);
+        setShareLinkId(null);
+        toast.success("Share link revoked");
+      } else {
+        toast.error(result.error || "Failed to revoke share link");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleCopy() {
+    if (!shareUrl) return;
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    toast.success("Link copied to clipboard");
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Share Post</DialogTitle>
+          <DialogDescription>
+            Create a public link to share this post for feedback.
+          </DialogDescription>
+        </DialogHeader>
+
+        {shareUrl ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={shareUrl}
+                className="flex-1 rounded-md border bg-muted px-3 py-2 text-sm"
+              />
+              <Button size="icon" variant="outline" onClick={handleCopy}>
+                {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+              </Button>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleRevoke}
+              disabled={isLoading}
+              className="w-full"
+            >
+              <Link2Off className="mr-2 size-4" />
+              Revoke Link
+            </Button>
+          </div>
+        ) : (
+          <Button onClick={handleCreate} disabled={isLoading} className="w-full">
+            <Share2 className="mr-2 size-4" />
+            Create Share Link
+          </Button>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -120,6 +235,7 @@ export function PostCard({
 }: PostCardProps) {
   const router = useRouter();
   const [isActing, setIsActing] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   const firstItem = post.threadItems[0];
   const previewText = firstItem ? truncate(firstItem.text, 120) : "(empty)";
@@ -133,6 +249,7 @@ export function PostCard({
     0
   );
   const commentCount = post._count?.comments ?? 0;
+  const shareCommentCount = post.shareCommentCount ?? 0;
   const badge = STATUS_BADGE[post.status];
 
   // First media for thumbnail
@@ -226,6 +343,13 @@ export function PostCard({
                 {commentCount}
               </span>
             )}
+
+            {shareCommentCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Share2 className="size-3" />
+                {shareCommentCount}
+              </span>
+            )}
           </div>
 
           {/* Text preview */}
@@ -313,6 +437,11 @@ export function PostCard({
               </DropdownMenuItem>
             )}
 
+            <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
+              <Share2 className="mr-2 size-4" />
+              Share
+            </DropdownMenuItem>
+
             {["DRAFT", "SCHEDULED", "FAILED", "IN_REVIEW"].includes(post.status) && (
               <>
                 <DropdownMenuSeparator />
@@ -328,6 +457,12 @@ export function PostCard({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <ShareDialog
+          postId={post.id}
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+        />
       </CardContent>
     </Card>
   );
