@@ -18,6 +18,90 @@ interface TweetPreviewProps {
   hideActions?: boolean;
 }
 
+function renderSegments(text: string) {
+  const segments = parseTweet(text);
+  return segments.map((seg, i) => {
+    if (seg.type === "hashtag" || seg.type === "mention") {
+      return (
+        <span key={i} className="text-x-blue">
+          {seg.value}
+        </span>
+      );
+    }
+    if (seg.type === "url") {
+      return (
+        <span key={i} className="text-x-blue">
+          {seg.value.replace(/^https?:\/\//, "").slice(0, 30)}
+          {seg.value.length > 37 ? "..." : ""}
+        </span>
+      );
+    }
+    return <span key={i}>{seg.value}</span>;
+  });
+}
+
+function MediaGrid({ media }: { media: MediaState[] }) {
+  if (media.length === 0) return null;
+
+  if (media.length === 1) {
+    return (
+      <div className="mt-3 overflow-hidden rounded-2xl border">
+        <div className="relative aspect-video bg-muted">
+          {media[0].mediaType === "VIDEO" ? (
+            <div className="flex h-full w-full items-center justify-center bg-muted">
+              <div className="rounded-full bg-black/60 p-3">
+                <div className="ml-0.5 h-0 w-0 border-y-[8px] border-l-[14px] border-y-transparent border-l-white" />
+              </div>
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={media[0].url}
+              alt={media[0].altText || ""}
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "mt-3 grid aspect-video gap-0.5 overflow-hidden rounded-2xl border",
+        media.length === 2 && "grid-cols-2",
+        media.length >= 3 && "grid-cols-2 grid-rows-2"
+      )}
+    >
+      {media.map((m, index) => (
+        <div
+          key={`${m.url}-${index}`}
+          className={cn(
+            "relative min-h-0 min-w-0 overflow-hidden bg-muted",
+            media.length === 3 && index === 0 && "row-span-2"
+          )}
+        >
+          {m.mediaType === "VIDEO" ? (
+            <div className="flex h-full w-full items-center justify-center bg-muted">
+              <div className="rounded-full bg-black/60 p-3">
+                <div className="ml-0.5 h-0 w-0 border-y-[8px] border-l-[14px] border-y-transparent border-l-white" />
+              </div>
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={m.url}
+              alt={m.altText || ""}
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function TweetPreview({
   text,
   media,
@@ -29,7 +113,8 @@ export function TweetPreview({
   showConnector = false,
   hideActions = false,
 }: TweetPreviewProps) {
-  const segments = parseTweet(text);
+  const isLongform = text.length >= 500;
+  const hasParagraphBreaks = text.includes("\n\n");
 
   return (
     <div className="flex gap-3">
@@ -54,33 +139,27 @@ export function TweetPreview({
         <div className="flex items-center gap-1.5">
           <span className="truncate text-sm font-bold">{displayName}</span>
           <span className="truncate text-sm text-muted-foreground">@{username}</span>
-          <span className="text-sm text-muted-foreground">·</span>
+          <span className="text-sm text-muted-foreground">&middot;</span>
           <span className="text-sm text-muted-foreground">now</span>
         </div>
 
-        {/* Text with highlighting */}
-        {text && (
+        {/* Text rendering — longform with paragraphs or standard */}
+        {text && isLongform && hasParagraphBreaks ? (
+          <div className="mt-1 space-y-3">
+            {text.split("\n\n").map((paragraph, pIdx) => (
+              <p
+                key={pIdx}
+                className="whitespace-pre-wrap break-words text-sm leading-relaxed"
+              >
+                {renderSegments(paragraph)}
+              </p>
+            ))}
+          </div>
+        ) : text ? (
           <p className="mt-0.5 whitespace-pre-wrap break-words text-sm leading-relaxed">
-            {segments.map((seg, i) => {
-              if (seg.type === "hashtag" || seg.type === "mention") {
-                return (
-                  <span key={i} className="text-x-blue">
-                    {seg.value}
-                  </span>
-                );
-              }
-              if (seg.type === "url") {
-                return (
-                  <span key={i} className="text-x-blue">
-                    {seg.value.replace(/^https?:\/\//, "").slice(0, 30)}
-                    {seg.value.length > 37 ? "..." : ""}
-                  </span>
-                );
-              }
-              return <span key={i}>{seg.value}</span>;
-            })}
+            {renderSegments(text)}
           </p>
-        )}
+        ) : null}
 
         {/* Poll preview */}
         {pollOptions && pollOptions.filter(Boolean).length >= 2 && (
@@ -96,62 +175,8 @@ export function TweetPreview({
           </div>
         )}
 
-        {/* Media grid — matches X's exact layout */}
-        {media.length === 1 && (
-          <div className="mt-3 overflow-hidden rounded-2xl border">
-            <div className="relative aspect-video bg-muted">
-              {media[0].mediaType === "VIDEO" ? (
-                <div className="flex h-full w-full items-center justify-center bg-muted">
-                  <div className="rounded-full bg-black/60 p-3">
-                    <div className="ml-0.5 h-0 w-0 border-y-[8px] border-l-[14px] border-y-transparent border-l-white" />
-                  </div>
-                </div>
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={media[0].url}
-                  alt={media[0].altText || ""}
-                  className="h-full w-full object-cover"
-                />
-              )}
-            </div>
-          </div>
-        )}
-
-        {media.length >= 2 && (
-          <div
-            className={cn(
-              "mt-3 grid aspect-video gap-0.5 overflow-hidden rounded-2xl border",
-              media.length === 2 && "grid-cols-2",
-              media.length >= 3 && "grid-cols-2 grid-rows-2"
-            )}
-          >
-            {media.map((m, index) => (
-              <div
-                key={`${m.url}-${index}`}
-                className={cn(
-                  "relative min-h-0 min-w-0 overflow-hidden bg-muted",
-                  media.length === 3 && index === 0 && "row-span-2"
-                )}
-              >
-                {m.mediaType === "VIDEO" ? (
-                  <div className="flex h-full w-full items-center justify-center bg-muted">
-                    <div className="rounded-full bg-black/60 p-3">
-                      <div className="ml-0.5 h-0 w-0 border-y-[8px] border-l-[14px] border-y-transparent border-l-white" />
-                    </div>
-                  </div>
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.url}
-                    alt={m.altText || ""}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Media grid */}
+        <MediaGrid media={media} />
 
         {/* Action bar */}
         {!hideActions && (

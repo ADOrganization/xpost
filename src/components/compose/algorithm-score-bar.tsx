@@ -16,6 +16,7 @@ interface AlgorithmScoreBarProps {
   text: string;
   hasMedia: boolean;
   threadLength: number;
+  variant?: "inline" | "sidebar";
 }
 
 interface ScoreSignal {
@@ -98,6 +99,7 @@ export function AlgorithmScoreBar({
   text,
   hasMedia,
   threadLength,
+  variant = "inline",
 }: AlgorithmScoreBarProps) {
   const analysis = useMemo(
     () => analyzeContent(text, hasMedia, threadLength),
@@ -158,6 +160,70 @@ export function AlgorithmScoreBar({
   );
 
   if (!text.trim()) return null;
+
+  if (variant === "sidebar") {
+    return (
+      <div className="space-y-3">
+        {/* Score header */}
+        <div className="space-y-1.5">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1.5 cursor-default">
+                <TrendingUp className={cn("size-3.5", getScoreColor(analysis.score))} />
+                <span className={cn("text-lg font-bold tabular-nums", getScoreColor(analysis.score))}>
+                  {analysis.score}
+                </span>
+                <span className="text-[10px] text-muted-foreground">/ 100</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p className="max-w-[220px] text-xs">
+                Algorithm reach score based on X&apos;s real engagement weights.{" "}
+                {getScoreLabel(analysis.score)}.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div
+              className={cn("h-full rounded-full transition-all duration-500 ease-out", getBarColor(analysis.score))}
+              style={{ width: `${analysis.score}%` }}
+            />
+          </div>
+          <p className={cn("text-[10px] font-medium", getScoreColor(analysis.score))}>
+            {getScoreLabel(analysis.score)}
+          </p>
+        </div>
+
+        {/* Signal list — vertical in sidebar */}
+        <div className="space-y-1">
+          {signals.map((signal) => (
+            <Tooltip key={signal.label}>
+              <TooltipTrigger asChild>
+                <div
+                  className={cn(
+                    "flex items-center gap-2 rounded-md px-2 py-1 text-[11px] font-medium transition-colors cursor-default",
+                    signal.active && signal.weight === "high"
+                      ? "bg-emerald-500/10 text-emerald-500"
+                      : signal.active && signal.weight === "medium"
+                        ? "bg-x-blue/10 text-x-blue"
+                        : signal.active && signal.weight === "low"
+                          ? "bg-yellow-500/10 text-yellow-500"
+                          : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  <signal.icon className="size-3 shrink-0" />
+                  <span className="truncate">{signal.label}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p className="max-w-[240px] text-xs">{signal.tip}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2.5">
