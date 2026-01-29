@@ -92,19 +92,17 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
   }, [mutate, editId, router]);
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="mx-auto max-w-[980px]">
-        {isLoadingEdit ? (
-          <ComposeSkeleton />
-        ) : (
-          <ComposePanel
-            accounts={accounts}
-            workspaceId={workspaceId}
-            editingPost={editingPost}
-            onPostSaved={handlePostSaved}
-          />
-        )}
-      </div>
+    <div className="h-full">
+      {isLoadingEdit ? (
+        <ComposeSkeleton />
+      ) : (
+        <ComposePanel
+          accounts={accounts}
+          workspaceId={workspaceId}
+          editingPost={editingPost}
+          onPostSaved={handlePostSaved}
+        />
+      )}
     </div>
   );
 }

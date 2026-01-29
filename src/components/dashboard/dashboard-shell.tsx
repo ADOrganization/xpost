@@ -28,7 +28,7 @@ export function DashboardShell({ workspaceName, children }: DashboardShellProps)
       {/* Main area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header workspaceName={workspaceName} onMobileMenuToggle={openMobile} />
-        <main className="flex-1 overflow-auto p-4 md:p-6">{children}</main>
+        <main className="flex-1 overflow-auto px-3 py-4 md:px-4 md:py-5">{children}</main>
       </div>
     </div>
   );
