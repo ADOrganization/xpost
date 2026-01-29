@@ -18,6 +18,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { COMPOSE_TIPS, AI_ACTION_DESCRIPTIONS } from "@/lib/x-principles";
 
 interface AiAssistProps {
   text: string;
@@ -27,8 +29,8 @@ interface AiAssistProps {
 type AiAction = "rewrite" | "improve" | "shorter" | "longer" | "hashtags" | "thread";
 
 const AI_ACTIONS: { action: AiAction; label: string; icon: typeof Sparkles }[] = [
-  { action: "rewrite", label: "Rewrite", icon: RefreshCw },
   { action: "improve", label: "Improve", icon: Sparkles },
+  { action: "rewrite", label: "Rewrite", icon: RefreshCw },
   { action: "shorter", label: "Make shorter", icon: ArrowDown },
   { action: "longer", label: "Make longer", icon: ArrowUp },
   { action: "hashtags", label: "Suggest hashtags", icon: Hash },
@@ -80,19 +82,26 @@ export function AiAssist({ text, onAccept }: AiAssistProps) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          type="button"
-          className="gap-1.5 text-muted-foreground"
-          disabled={!text.trim()}
-        >
-          <Sparkles className="size-3.5" />
-          AI Assist
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-72 p-2" align="start">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              className="gap-1.5 text-muted-foreground"
+              disabled={!text.trim()}
+            >
+              <Sparkles className="size-3.5" />
+              AI Assist
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p className="max-w-[220px]">{COMPOSE_TIPS.aiAssist}</p>
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent className="w-80 p-2" align="start">
         {suggestion ? (
           <div className="space-y-3">
             <p className="text-xs font-medium text-muted-foreground">
@@ -127,10 +136,17 @@ export function AiAssist({ text, onAccept }: AiAssistProps) {
               <button
                 key={action}
                 onClick={() => handleAction(action)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                className="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-sm hover:bg-accent transition-colors"
               >
-                <Icon className="size-3.5 text-muted-foreground" />
-                {label}
+                <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+                <div className="text-left">
+                  <span className="font-medium">{label}</span>
+                  {AI_ACTION_DESCRIPTIONS[action] && (
+                    <p className="text-[11px] leading-tight text-muted-foreground">
+                      {AI_ACTION_DESCRIPTIONS[action]}
+                    </p>
+                  )}
+                </div>
               </button>
             ))}
           </div>

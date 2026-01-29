@@ -6,8 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { AiAssist } from "@/components/compose/ai-assist";
 import { MediaUpload } from "@/components/compose/media-upload";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useCharacterCount } from "@/hooks/use-character-count";
 import { cn } from "@/lib/utils";
+import { COMPOSE_TIPS } from "@/lib/x-principles";
 import type { MediaState } from "@/lib/types";
 
 interface TweetEditorProps {
@@ -76,7 +78,7 @@ export function TweetEditor({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onInput={adjustHeight}
-          placeholder="What's happening?"
+          placeholder="Start with a punchy hook. One sentence per line."
           className={cn(
             "min-h-[80px] resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0",
             position > 0 && "pt-4"
@@ -99,31 +101,45 @@ export function TweetEditor({
       {/* Toolbar: media button + AI assist + character counter */}
       <div className="flex items-center justify-between border-t px-3 py-2">
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            className="text-muted-foreground hover:text-primary"
-            onClick={() => mediaInputRef.current?.click()}
-            disabled={mediaDisabled}
-            type="button"
-          >
-            <ImagePlus className="size-4" />
-            <span className="sr-only">Add media</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="text-muted-foreground hover:text-primary"
+                onClick={() => mediaInputRef.current?.click()}
+                disabled={mediaDisabled}
+                type="button"
+              >
+                <ImagePlus className="size-4" />
+                <span className="sr-only">Add media</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p className="max-w-[200px]">{COMPOSE_TIPS.media}</p>
+            </TooltipContent>
+          </Tooltip>
           <AiAssist text={value} onAccept={onChange} />
         </div>
-        <span
-          className={cn(
-            "text-xs font-medium",
-            isOver
-              ? "text-destructive"
-              : remaining <= 20
-                ? "text-yellow-500"
-                : "text-muted-foreground"
-          )}
-        >
-          {remaining}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className={cn(
+                "cursor-default text-xs font-medium",
+                isOver
+                  ? "text-destructive"
+                  : remaining <= 20
+                    ? "text-yellow-500"
+                    : "text-muted-foreground"
+              )}
+            >
+              {remaining}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p className="max-w-[200px]">{COMPOSE_TIPS.charCount}</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
