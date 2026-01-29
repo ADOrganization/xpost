@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, Settings, ChevronRight } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import Link from "next/link";
 
@@ -61,7 +60,6 @@ export function Header({ workspaceName, onMobileMenuToggle }: HeaderProps) {
 
       {/* Right: actions */}
       <div className="flex items-center gap-1">
-        <ThemeToggle />
         <NotificationBell />
 
         <DropdownMenu>
