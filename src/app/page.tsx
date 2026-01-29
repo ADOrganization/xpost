@@ -34,7 +34,7 @@ const features = [
     icon: Users,
     title: "Team Collaboration",
     description:
-      "Invite your team. Assign roles: Owner, Editor, Viewer. Share one queue.",
+      "Invite your team. Assign roles: Owner, Editor, Viewer. Share one workspace.",
   },
   {
     icon: Image,
@@ -98,12 +98,12 @@ export default function Home() {
               <div className="mb-6 text-sm font-semibold text-foreground">
                 XPost
               </div>
-              {["Queue", "Drafts", "Published", "Calendar", "Settings"].map(
+              {["Posts", "Drafts", "Published", "Calendar", "Settings"].map(
                 (item) => (
                   <div
                     key={item}
                     className={`mb-1 rounded-md px-3 py-2 text-sm ${
-                      item === "Queue"
+                      item === "Posts"
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground"
                     }`}

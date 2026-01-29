@@ -93,8 +93,8 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
   }, [mutate, editId, router]);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-full">
-      <div className="w-full lg:w-1/3 lg:min-w-[320px] shrink-0 overflow-auto">
+    <div className="flex flex-col xl:flex-row gap-6 h-full">
+      <div className="w-full xl:w-3/5 xl:min-w-[640px] shrink-0 overflow-auto">
         {isLoadingEdit ? (
           <ComposeSkeleton />
         ) : (

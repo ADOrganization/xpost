@@ -4,7 +4,6 @@ import { Plus, GripVertical } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { TweetEditor } from "@/components/compose/tweet-editor";
-import { MediaUpload } from "@/components/compose/media-upload";
 import { MAX_THREAD_ITEMS } from "@/lib/constants";
 import type { ThreadItemState, MediaState } from "@/lib/types";
 import {
@@ -93,20 +92,16 @@ function SortableItem({
           </button>
         )}
 
-        <div className="flex-1 space-y-2">
+        <div className="flex-1">
           <TweetEditor
             value={item.text}
             onChange={(text) => onTextChange(item.id, text)}
             position={items.length > 1 ? index + 1 : 0}
             onRemove={() => onRemove(item.id)}
             showRemove={items.length > 1}
-          />
-
-          {/* Per-item media upload */}
-          <MediaUpload
             media={item.images}
-            onChange={(media) => onMediaChange(item.id, media)}
-            disabled={pollEnabled && index === 0}
+            onMediaChange={(media) => onMediaChange(item.id, media)}
+            mediaDisabled={pollEnabled && index === 0}
           />
         </div>
       </div>

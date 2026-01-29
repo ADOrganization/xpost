@@ -20,10 +20,13 @@ interface MediaUploadProps {
   media: MediaState[];
   onChange: (media: MediaState[]) => void;
   disabled?: boolean;
+  inline?: boolean;
+  triggerRef?: React.RefObject<HTMLInputElement | null>;
 }
 
-export function MediaUpload({ media, onChange, disabled = false }: MediaUploadProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+export function MediaUpload({ media, onChange, disabled = false, inline = false, triggerRef }: MediaUploadProps) {
+  const internalRef = useRef<HTMLInputElement>(null);
+  const inputRef = triggerRef ?? internalRef;
   const [dragOver, setDragOver] = useState(false);
   const [altDialogOpen, setAltDialogOpen] = useState(false);
   const [altDialogIndex, setAltDialogIndex] = useState<number | null>(null);
@@ -98,7 +101,12 @@ export function MediaUpload({ media, onChange, disabled = false }: MediaUploadPr
   }
 
   return (
-    <div className="space-y-3">
+    <div
+      className="space-y-3"
+      onDrop={inline ? handleDrop : undefined}
+      onDragOver={inline ? (e) => { e.preventDefault(); if (!disabled) setDragOver(true); } : undefined}
+      onDragLeave={inline ? (e) => { e.preventDefault(); setDragOver(false); } : undefined}
+    >
       {media.length > 0 && (
         <div className="grid grid-cols-2 gap-2">
           {media.map((m, index) => (
@@ -143,7 +151,7 @@ export function MediaUpload({ media, onChange, disabled = false }: MediaUploadPr
         </div>
       )}
 
-      {canAdd && (
+      {canAdd && !inline && (
         <div
           onDrop={handleDrop}
           onDragOver={(e) => { e.preventDefault(); if (!disabled) setDragOver(true); }}
@@ -172,6 +180,17 @@ export function MediaUpload({ media, onChange, disabled = false }: MediaUploadPr
             className="hidden"
           />
         </div>
+      )}
+
+      {inline && (
+        <input
+          ref={inputRef}
+          type="file"
+          accept={ACCEPTED_MEDIA_TYPES.join(",")}
+          multiple
+          onChange={handleFileChange}
+          className="hidden"
+        />
       )}
 
       <Dialog open={altDialogOpen} onOpenChange={setAltDialogOpen}>

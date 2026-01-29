@@ -160,7 +160,7 @@ export function PostCard({
     try {
       const result = await publishNow(post.id);
       if (result.success) {
-        toast.success("Post queued for publishing");
+        toast.success("Post scheduled for publishing");
         onMutate?.();
       } else {
         toast.error(result.error || "Failed to publish post");

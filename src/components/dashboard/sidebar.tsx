@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const navItems = [
-  { href: "/dashboard", label: "Queue", icon: LayoutList },
+  { href: "/dashboard", label: "Posts", icon: LayoutList },
   { href: "/dashboard/drafts", label: "Drafts", icon: FileText },
   { href: "/dashboard/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },

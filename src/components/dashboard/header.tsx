@@ -16,7 +16,7 @@ import { NotificationBell } from "@/components/notifications/notification-bell";
 import Link from "next/link";
 
 const BREADCRUMB_MAP: Record<string, string> = {
-  "/dashboard": "Queue",
+  "/dashboard": "Posts",
   "/dashboard/drafts": "Drafts",
   "/dashboard/calendar": "Calendar",
   "/dashboard/analytics": "Analytics",

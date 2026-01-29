@@ -55,7 +55,7 @@ export function DashboardTabs({ workspaceId }: DashboardTabsProps) {
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="drafts">Drafts</TabsTrigger>
           <TabsTrigger value="review">In Review</TabsTrigger>
-          <TabsTrigger value="queue">Scheduled</TabsTrigger>
+          <TabsTrigger value="queue">Posts</TabsTrigger>
           <TabsTrigger value="published">Published</TabsTrigger>
           <TabsTrigger value="failed">Failed</TabsTrigger>
         </TabsList>
@@ -99,7 +99,7 @@ export function DashboardTabs({ workspaceId }: DashboardTabsProps) {
           <PostList
             workspaceId={workspaceId}
             status="SCHEDULED"
-            emptyMessage="No posts in the queue. Schedule a post to get started."
+            emptyMessage="No scheduled posts yet. Schedule a post to get started."
             searchQuery={searchQuery}
             selectable
             selectedIds={selectedIds}

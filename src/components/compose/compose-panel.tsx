@@ -293,82 +293,89 @@ export function ComposePanel({
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      {/* Account selector */}
-      <AccountSelector
-        accounts={accounts}
-        selectedId={state.selectedAccountId}
-        onChange={handleAccountChange}
-      />
+    <div className="flex flex-col lg:flex-row lg:gap-6">
+      {/* LEFT: compose controls */}
+      <div className="flex-1 min-w-0 space-y-6">
+        {/* Account selector */}
+        <AccountSelector
+          accounts={accounts}
+          selectedId={state.selectedAccountId}
+          onChange={handleAccountChange}
+        />
 
-      {/* Thread builder (main editing area with per-item media) */}
-      <ThreadBuilder
-        items={state.items}
-        onUpdate={handleItemsUpdate}
-        pollEnabled={state.pollEnabled}
-      />
+        {/* Thread builder (main editing area with per-item media) */}
+        <ThreadBuilder
+          items={state.items}
+          onUpdate={handleItemsUpdate}
+          pollEnabled={state.pollEnabled}
+        />
 
-      {/* Poll builder (first item only, mutual exclusion with media) */}
-      <PollBuilder
-        options={state.pollOptions}
-        onChange={handlePollOptionsChange}
-        enabled={state.pollEnabled}
-        onToggle={handlePollToggle}
-        duration={state.pollDuration}
-        onDurationChange={handlePollDurationChange}
-      />
+        {/* Poll builder (first item only, mutual exclusion with media) */}
+        <PollBuilder
+          options={state.pollOptions}
+          onChange={handlePollOptionsChange}
+          enabled={state.pollEnabled}
+          onToggle={handlePollToggle}
+          duration={state.pollDuration}
+          onDurationChange={handlePollDurationChange}
+        />
 
-      <Separator />
+        <Separator />
 
-      {/* Schedule picker */}
-      <SchedulePicker
-        date={state.scheduledAt}
-        onChange={handleScheduleChange}
-        onValidChange={setScheduleValid}
-      />
+        {/* Schedule picker */}
+        <SchedulePicker
+          date={state.scheduledAt}
+          onChange={handleScheduleChange}
+          onValidChange={setScheduleValid}
+        />
 
-      {/* Action buttons */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="outline"
-          onClick={() => handleSave(true)}
-          disabled={state.isSaving || !hasText}
-          type="button"
-          className="gap-1.5"
-        >
-          {state.isSaving ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Save className="size-4" />
-          )}
-          {isEditing ? "Update Draft" : "Save Draft"}
-        </Button>
-        <Button
-          onClick={() => handleSave(false)}
-          disabled={state.isSaving || !hasText || !state.selectedAccountId || !scheduleValid}
-          type="button"
-          className="gap-1.5"
-        >
-          {state.isSaving ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Send className="size-4" />
-          )}
-          {isEditing
-            ? "Update"
-            : state.scheduledAt
-              ? "Schedule"
-              : "Post Now"}
-        </Button>
+        {/* Action buttons */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => handleSave(true)}
+            disabled={state.isSaving || !hasText}
+            type="button"
+            className="gap-1.5"
+          >
+            {state.isSaving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            {isEditing ? "Update Draft" : "Save Draft"}
+          </Button>
+          <Button
+            onClick={() => handleSave(false)}
+            disabled={state.isSaving || !hasText || !state.selectedAccountId || !scheduleValid}
+            type="button"
+            className="gap-1.5"
+          >
+            {state.isSaving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+            {isEditing
+              ? "Update"
+              : state.scheduledAt
+                ? "Schedule"
+                : "Post Now"}
+          </Button>
+        </div>
       </div>
 
-      {/* Thread Preview (replaces old PostPreview) */}
+      {/* RIGHT: live preview (sticky, desktop only) */}
       {hasText && selectedAccount && (
-        <ThreadPreview
-          items={state.items}
-          account={selectedAccount}
-          pollOptions={state.pollEnabled ? state.pollOptions : undefined}
-        />
+        <div className="hidden lg:block lg:w-[340px] lg:shrink-0">
+          <div className="sticky top-4">
+            <ThreadPreview
+              items={state.items}
+              account={selectedAccount}
+              pollOptions={state.pollEnabled ? state.pollOptions : undefined}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
