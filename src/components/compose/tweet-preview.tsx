@@ -3,7 +3,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { parseTweet } from "@/lib/tweet-parser";
 import { cn } from "@/lib/utils";
-import { Heart, MessageCircle, Repeat2, Bookmark, Share } from "lucide-react";
 import type { MediaState } from "@/lib/types";
 
 interface TweetPreviewProps {
@@ -111,7 +110,6 @@ export function TweetPreview({
   pollOptions,
   isThread = false,
   showConnector = false,
-  hideActions = false,
 }: TweetPreviewProps) {
   const isLongform = text.length >= 500;
   const hasParagraphBreaks = text.includes("\n\n");
@@ -178,26 +176,6 @@ export function TweetPreview({
         {/* Media grid */}
         <MediaGrid media={media} />
 
-        {/* Action bar */}
-        {!hideActions && (
-          <div className="mt-3 flex justify-between text-muted-foreground">
-            <button className="flex items-center gap-1 text-xs hover:text-primary transition-colors">
-              <MessageCircle className="size-4" />
-            </button>
-            <button className="flex items-center gap-1 text-xs hover:text-green-500 transition-colors">
-              <Repeat2 className="size-4" />
-            </button>
-            <button className="flex items-center gap-1 text-xs hover:text-pink-500 transition-colors">
-              <Heart className="size-4" />
-            </button>
-            <button className="flex items-center gap-1 text-xs hover:text-primary transition-colors">
-              <Bookmark className="size-4" />
-            </button>
-            <button className="flex items-center gap-1 text-xs hover:text-primary transition-colors">
-              <Share className="size-4" />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
