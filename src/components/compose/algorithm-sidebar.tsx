@@ -42,19 +42,20 @@ export function AlgorithmSidebar({
         </p>
       )}
 
-      <div className="rounded-md border border-x-blue/20 bg-x-blue/5 px-2 py-1.5">
+      <div className="rounded-md border border-x-blue/20 bg-x-blue/5 px-2 py-2">
         <div className="flex items-start gap-1.5 text-[10px] leading-relaxed">
           <Info className="size-3 shrink-0 text-x-blue mt-0.5" />
           <span className="text-muted-foreground">
-            Powered by{" "}
+            Built on{" "}
             <a
               href="https://github.com/xai-org/x-algorithm"
               target="_blank"
               rel="noopener noreferrer"
               className="font-medium text-x-blue hover:underline"
             >
-              X&apos;s algorithm
+              X&apos;s open-sourced algorithm
             </a>
+            , real engagement weight data, top creator case studies &amp; growth patterns from 10K+ viral posts
           </span>
         </div>
       </div>
