@@ -407,14 +407,14 @@ export function PostCard({
             {totalFeedbackCount > 0 && (
               <button
                 type="button"
-                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[11px] font-medium text-purple-500 hover:bg-purple-500/20 transition-colors cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   setFeedbackDialogOpen(true);
                 }}
               >
-                <Share2 className="size-3" />
-                {totalFeedbackCount} feedback
+                <MessageSquare className="size-3" />
+                {totalFeedbackCount} feedback — View
               </button>
             )}
 
