@@ -25,7 +25,7 @@ const ACTION_INSTRUCTIONS: Record<AiAction, string> = {
   longer:
     "Expand this tweet with actionable detail — walk through the process step by step. Keep it under 280 characters. Use line breaks for readability. Optimize for dwell time (22x likes) by making every line substantive. Return ONLY the expanded tweet text, no explanation.",
   thread:
-    "Convert this idea into a Twitter thread of 3-5 tweets. The first tweet MUST be a scroll-stopping hook. Each following tweet delivers step-by-step actionable value. Each tweet under 280 characters. Number them 1/, 2/, etc. Note: the algorithm applies diversity decay (0.625x for 2nd tweet, 0.4375x for 3rd+) so front-load your strongest content in tweet 1. Return ONLY the thread tweets, each on a new line separated by ---.",
+    "Convert this idea into a Twitter thread of 3-5 tweets. The first tweet MUST be a scroll-stopping hook. Each following tweet delivers step-by-step actionable value. Each tweet under 280 characters. Number them 1/, 2/, etc. Front-load your strongest content in tweet 1. CRITICAL: Output ONLY the raw tweet text. Never include tips, advice, strategy notes, algorithm references, or meta-commentary in the tweets. Each tweet must read exactly as it would appear on X. Return ONLY the thread tweets separated by ---.",
   optimize:
     `Rewrite this tweet to maximize its X algorithm score based on real engagement weights. Apply these specific optimizations:
 
@@ -49,11 +49,11 @@ Return ONLY the optimized tweet text, no explanation.`,
   tone_informative:
     "Rewrite this tweet in an informative, educational tone. Walk through the insight step by step. Return ONLY the rewritten tweet text, no explanation.",
   from_url:
-    "Based on the content from this URL, create an engaging tweet thread (3-5 tweets) summarizing the key points. First tweet must be a scroll-stopping hook. Each tweet under 280 characters. Number them 1/, 2/, etc. Return ONLY the thread tweets, each on a new line separated by ---.",
+    "Based on the content from this URL, create an engaging tweet thread (3-5 tweets) summarizing the key points. First tweet must be a scroll-stopping hook. Each tweet under 280 characters. Number them 1/, 2/, etc. CRITICAL: Output ONLY the raw tweet text. Never include tips, advice, strategy notes, or meta-commentary. Each tweet must read exactly as it would appear on X. Return ONLY the thread tweets separated by ---.",
   generate_single:
-    "Create a polished single tweet from the given context/topic. Optimize for dwell time (22x likes) and natural reply triggers. Start with a strong hook that stops the scroll. Max 280 characters. Do not end with a question unless it genuinely fits. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the tweet text, no explanation.",
+    "Create a polished single tweet from the given context/topic. Start with a strong hook that stops the scroll. Max 280 characters. Do not end with a question unless it genuinely fits. Do not copy the input text directly, use it as inspiration and context to create original content. CRITICAL: Output ONLY the raw tweet text the user will post. Never include tips, advice, strategy notes, algorithm references, explanations, or meta-commentary. No parenthetical asides like '(this drives replies)'. The output must read exactly as a real tweet would appear on X.",
   generate_thread:
-    "Create a 3-6 tweet thread from the given context/topic. Tweet 1 MUST be a scroll-stopping hook. Deliver actionable value in each following tweet. Number them 1/, 2/, etc. End the thread with a strong closing statement, not a forced question. Front-load your strongest content (diversity decay: 2nd tweet 0.625x, 3rd+ 0.4375x). Each tweet under 280 characters. Do not copy the input text directly, use it as inspiration and context to create original content. Return ONLY the thread tweets separated by ---.",
+    "Create a 3-6 tweet thread from the given context/topic. Tweet 1 MUST be a scroll-stopping hook. Deliver actionable value in each following tweet. Number them 1/, 2/, etc. End the thread with a strong closing statement, not a forced question. Front-load your strongest content. Each tweet under 280 characters. Do not copy the input text directly, use it as inspiration and context to create original content. CRITICAL: Output ONLY the raw tweet text the user will post. Never include tips, advice, strategy notes, algorithm references, explanations, or meta-commentary in the tweets. No parenthetical asides like '(this drives replies)' or 'Tip:' lines. Each tweet must read exactly as it would appear on X. Return ONLY the thread tweets separated by ---.",
 };
 
 export async function generateAiContent(
