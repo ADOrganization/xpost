@@ -6,6 +6,7 @@ import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { ComposePanel, type EditingPost } from "@/components/compose/compose-panel";
+import { FeedbackReviewPanel } from "@/components/feedback/feedback-review-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { XAccountOption } from "@/lib/types";
 
@@ -33,6 +34,7 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const editId = searchParams.get("edit");
+  const reviewId = searchParams.get("review");
 
   const [editingPost, setEditingPost] = useState<EditingPost | null>(null);
   const [isLoadingEdit, setIsLoadingEdit] = useState(false);
@@ -93,7 +95,14 @@ export function DashboardContent({ workspaceId, accounts }: DashboardContentProp
 
   return (
     <div className="h-full">
-      {isLoadingEdit ? (
+      {reviewId && !editId ? (
+        <FeedbackReviewPanel
+          postId={reviewId}
+          onClose={() => router.replace("/dashboard")}
+          onEdit={() => router.replace(`/dashboard?edit=${reviewId}`)}
+          onMutate={handlePostSaved}
+        />
+      ) : isLoadingEdit ? (
         <ComposeSkeleton />
       ) : (
         <ComposePanel

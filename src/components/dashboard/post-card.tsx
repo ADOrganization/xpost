@@ -410,7 +410,11 @@ export function PostCard({
                 className="inline-flex items-center gap-1.5 rounded-md border border-purple-500/30 bg-purple-500/10 px-2 py-0.5 text-[11px] font-medium text-purple-500 hover:bg-purple-500/20 transition-colors cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFeedbackDialogOpen(true);
+                  if (post.status === "DRAFT" || post.status === "IN_REVIEW") {
+                    router.push(`/dashboard?review=${post.id}`);
+                  } else {
+                    setFeedbackDialogOpen(true);
+                  }
                 }}
               >
                 <MessageSquare className="size-3" />
