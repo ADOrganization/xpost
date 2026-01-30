@@ -23,7 +23,7 @@ const mediaSchema = z.object({
 });
 
 const threadItemSchema = z.object({
-  text: z.string().min(1).max(TWEET_CHAR_LIMIT),
+  text: z.string().min(1),
   imageUrls: z.array(mediaSchema).max(MAX_IMAGES_PER_TWEET).optional().default([]),
 });
 
@@ -50,6 +50,17 @@ const createPostSchema = z
     },
     {
       message: "Scheduled posts require an X account and scheduled time",
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.status !== "DRAFT") {
+        return data.items.every((item) => item.text.length <= TWEET_CHAR_LIMIT);
+      }
+      return true;
+    },
+    {
+      message: `Each tweet must be ${TWEET_CHAR_LIMIT} characters or fewer to publish`,
     }
   );
 
